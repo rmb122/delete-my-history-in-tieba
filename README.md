@@ -1,4 +1,4 @@
-# Remove-my-hisroy-in-tieba
+# Delete-my-hisroy-in-tieba
 <h3>
 需要下载selenium的webdriver库<br>
 以及安装ChromeDriver后方可使用<br><br>
