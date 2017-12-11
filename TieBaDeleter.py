@@ -82,10 +82,22 @@ def deleter_fans():
         except common.exceptions.NoSuchElementException:
             print("Fans has been all deleted")
             break   
-
+            
+def deleter_BaIFollows(): #使用此功能需打开图片显示
+    driver.get("http://tieba.baidu.com/i/i/forum")
+    driver.find_element_by_class_name("pm_i_know").click()
+    while True:
+        try:
+            driver.find_element_by_class_name("pt").click()
+            driver.find_element_by_class_name("dialogJbtn").click()
+            time.sleep(0.5)
+        except common.exceptions.NoSuchElementException:
+            print("BaIFollows has been all deleted")
+            break
+            
 def Start_with_Chrome():
     chrome_options = webdriver.ChromeOptions()
-    prefs = {"profile.managed_default_content_settings.images":2} #不加载图片
+    prefs = {"profile.managed_default_content_settings.images":2} #不加载图片 若注释掉这行和下一行即加载图片
     chrome_options.add_experimental_option("prefs",prefs)
     driver=webdriver.Chrome(chrome_options=chrome_options)
     return driver
