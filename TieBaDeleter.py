@@ -83,7 +83,7 @@ def deleter_fans():
             print("Fans has been all deleted")
             break   
             
-def deleter_BaIFollows(): #使用此功能需打开图片显示
+def deleter_BaIFollow(): #使用此功能需打开图片显示
     driver.get("http://tieba.baidu.com/i/i/forum")
     driver.find_element_by_class_name("pm_i_know").click()
     while True:
