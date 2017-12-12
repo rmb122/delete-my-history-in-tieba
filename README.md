@@ -12,3 +12,4 @@ deleter_tie() 删除帖子 注意需配合my_tie_collector()和my_reply_collecto
 deleter_follows() 删除关注<br><br>
 deleter_fan() 删除粉丝<br><br>
 deleter_BaIFollow() 删除自己关注的吧<br><br>
+根据自动的网络情况调整time.sleep()
