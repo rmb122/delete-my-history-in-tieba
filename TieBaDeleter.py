@@ -46,20 +46,38 @@ def my_reply_collector():
     print("Links of Reply Collected")
     return listOfLinks
 
-def deleter_tie(listOfLinks):
+def deleter_tie(listOfLinks,username): #增加对楼中楼的删除功能
     print("Now Deleting")
     for i in range(0,len(listOfLinks)-1):
         try:
             driver.get(listOfLinks[i])
+            time.sleep(1) 
             element=driver.find_element_by_class_name("p_post_del_my")
             driver.execute_script("arguments[0].scrollIntoView(false);", element)
             element.click()
-            time.sleep(0.1)                  
+            time.sleep(0.3)                  
+            driver.find_element_by_class_name("dialogJanswers").find_element_by_tag_name("input").click()
+            print("Deleted")
+            continue
+        except common.exceptions.NoSuchElementException:
+            print("Fail to find element,try next way")
+
+        try:
+            maincontent=driver.find_element_by_class_name("p_postlist")
+            elements=maincontent.find_elements_by_link_text(username)
+            for element in elements:
+                ActionChains(driver).move_to_element(element).perform()
+                try:
+                    driver.find_element_by_link_text("删除").click()
+                    break
+                except common.exceptions.NoSuchElementException:
+                    print("Fail to find element,try next herf") #有可能别人@你导致选错元素，所以对每个超链接遍历一遍直到找到有删除按钮的
+            time.sleep(0.3)                  
             driver.find_element_by_class_name("dialogJanswers").find_element_by_tag_name("input").click()
             print("Deleted")
         except common.exceptions.NoSuchElementException:
-            print("Fail to find the element") #古老版本匿名,或者隐藏帖子没有删除按钮
-
+            print("Fail to find element,maybe your are in anonymous")
+            
 def deleter_follows():
     while True:
         driver.get("http://tieba.baidu.com/i/i/concern")
@@ -105,7 +123,7 @@ def Start_with_Chrome():
 
 driver=Start_with_Chrome()
 login("Here is your username","Here is your password")
-deleter_tie(my_reply_collector()) #Or my_tie_collector()
+deleter_tie(my_reply_collector(),"Here is your username") #Or my_tie_collector()
 deleter_fans()
 deleter_follows()
 print("All done")
