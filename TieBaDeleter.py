@@ -20,12 +20,12 @@ def my_tie_collector():
     driver.get("http://tieba.baidu.com/i/i/my_tie")
     listOfLinks=list()
     listOfElements=driver.find_elements_by_class_name("thread_title")
-    for i in range(0,len(listOfElements)-1):
+    for i in range(0,len(listOfElements)):
         listOfLinks.append(listOfElements[i].get_attribute("href"))
 
     driver.get("http://tieba.baidu.com/i/i/my_tie?&pn=2")  #注意每天限制30贴，所以最多前两页就足够了
     listOfElements=driver.find_elements_by_class_name("thread_title")
-    for i in range(0,len(listOfElements)-1):
+    for i in range(0,len(listOfElements)):
         listOfLinks.append(listOfElements[i].get_attribute("href"))
 
     print("Links of Tie Collected")
@@ -35,12 +35,12 @@ def my_reply_collector():
     driver.get("http://tieba.baidu.com/i/i/my_reply")
     listOfLinks=list()
     listOfElements=driver.find_elements_by_class_name("for_reply_context")
-    for i in range(0,len(listOfElements)-1):
+    for i in range(0,len(listOfElements)):
         listOfLinks.append(listOfElements[i].get_attribute("href"))
 
     driver.get("http://tieba.baidu.com/i/i/my_reply?&pn=2")  #同上
     listOfElements=driver.find_elements_by_class_name("for_reply_context")
-    for i in range(0,len(listOfElements)-1):
+    for i in range(0,len(listOfElements)):
         listOfLinks.append(listOfElements[i].get_attribute("href"))
 
     print("Links of Reply Collected")
@@ -48,7 +48,7 @@ def my_reply_collector():
 
 def deleter_tie(listOfLinks,username): #增加对楼中楼的删除功能
     print("Now Deleting")
-    for i in range(0,len(listOfLinks)-1):
+    for i in range(0,len(listOfLinks)):
         try:
             driver.get(listOfLinks[i])
             time.sleep(1) 
