@@ -7,7 +7,7 @@
 
 安装ChromeDriver<br>
 </h3>
-在https://sites.google.com/a/chromium.org/chromedriver/下载ChromeDriver<br>
+<a href="https://sites.google.com/a/chromium.org/chromedriver/"/>下载ChromeDriver</a><br>
 放在chrome的安装位置（默认在C:\Program Files (x86)\Google\Chrome\Application<br>
 最后将chrome的安装位置添加到系统环境变量的PATH当中即可<br><br>
 <h3>
