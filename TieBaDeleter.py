@@ -11,9 +11,9 @@ def login(username,password):
     driver.get("http://tieba.baidu.com/home/main?un="+urlusername+"&fr=home")
     driver.find_element_by_class_name("u_login").click()
     time.sleep(0.5)
-    driver.find_element_by_id("TANGRAM__PSP_10__userName").send_keys(username)
-    driver.find_element_by_id("TANGRAM__PSP_10__password").send_keys(password)
-    driver.find_element_by_id("TANGRAM__PSP_10__submit").click()
+    driver.find_element_by_id("TANGRAM__PSP_8__userName").send_keys(username)
+    driver.find_element_by_id("TANGRAM__PSP_8__password").send_keys(password)
+    driver.find_element_by_id("TANGRAM__PSP_8__submit").click()
     time.sleep(3)
 
 def my_tie_collector():  
