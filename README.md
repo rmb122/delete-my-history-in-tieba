@@ -1,10 +1,18 @@
-# Delete-my-hisroy-in-tieba
+# Delete-my-hisroy-in-tieba 
 <h3>
-需要下载selenium的webdriver库<br>
-以及安装ChromeDriver后方可使用<br><br>
+运行在Python 3.6<br>
+需要下载selenium的webdriver库 pip install selenium<br>
+以及安装ChromeDriver后方可使用<br>
+新加了个用Urllib删除回复的，速度比webdriver快← ←，可以稍微改改删其他的用<br><br>
 
-
-函数解释<br></h3>
+安装ChromeDriver<br>
+</h3>
+在https://sites.google.com/a/chromium.org/chromedriver/下载ChromeDriver<br>
+放在chrome的安装位置（默认在C:\Program Files (x86)\Google\Chrome\Application<br>
+最后将chrome的安装位置添加到系统环境变量的PATH当中即可<br><br>
+<h3>
+函数解释<br>
+</h3>
 login() 登陆 替换成自己的用户密码即可<br><br>
 my_tie_collector() 获得自己发的帖子的链接<br><br>
 my_reply_collector() 获得自己回复的链接<br><br>
