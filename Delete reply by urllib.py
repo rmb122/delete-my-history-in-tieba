@@ -6,6 +6,9 @@ import re
 import os
 import time
 
+startPageNumber=1 #在这里设置回复的搜索起始和结束位置
+endPageNumber=3
+
 def getTbs(opener):
     tbs=''
     while tbs=='':
@@ -57,11 +60,8 @@ header={
 
 opener=request.build_opener()
 
-listReg=re.compile(r'<a class="for_reply_context" style="text-decoration:none;" href="(.*?)" target="_blank" >')
-IDreg=re.compile(r'\/p\/([0-9]{0,})\?fid=([0-9]{0,})&amp;pid=([0-9]{0,})&amp;cid=([0-9]{0,})#[0-9]{0,}') 
+listReg=re.compile(r'<span class="b_reply_txt"><a class="b_reply" href="\/p\/([0-9]{0,})\?fid=([0-9]{0,})&amp;pid=([0-9]{0,})&amp;cid=([0-9]{0,})#([0-9]{0,})" target="_blank">')
 
-startPageNumber=1
-endPageNumber=3
 deleteCount=0
 replyList=list()
 
@@ -80,22 +80,35 @@ print('共收集到',len(replyList),'条回复\n')
 print('开始删除')        
         
 for reply in replyList:
-    Ids=IDreg.findall(reply) #匹配单个回复
-    tid=Ids[0][0] #找到对应ID
-    fid=Ids[0][1]
-    pid=Ids[0][2]
+    tid=reply[0] #找到对应ID
+    fid=reply[1]
+    pid=reply[2]
+    cid=reply[3] 
     tbs=getTbs(opener)
-    postData={
-        'ie':'utf-8',
-        'tbs':tbs,
-        'fid':fid,
-        'tid':tid,
-        'delete_my_post':'1',
-        'delete_my_thread':'0',
-        'is_vipdel':'0',
-        'pid':pid,
-        'is_finf':'1'
-    }
+    if cid==0: #对应的是楼中楼id,如果是0的话说明这条回复是一整楼.反之这条回复是一个楼中楼.
+        postData={
+            'ie':'utf-8',
+            'tbs':tbs,
+            'fid':fid,
+            'tid':tid,
+            'delete_my_post':'1',
+            'delete_my_thread':'0',
+            'is_vipdel':'0',
+            'pid':pid,
+            'is_finf':'1'
+        }
+    else:
+        postData={
+            'ie':'utf-8',
+            'tbs':tbs,
+            'fid':fid,
+            'tid':tid,
+            'delete_my_post':'1',
+            'delete_my_thread':'0',
+            'is_vipdel':'0',
+            'pid':cid,
+            'is_finf':'1'
+        }
     postData=parse.urlencode(postData).encode() #构造POST报文
     success=False
     

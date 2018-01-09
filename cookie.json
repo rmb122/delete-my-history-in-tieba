@@ -1,7 +1,7 @@
 [
 {
     "domain": ".baidu.com",
-    "expirationDate": example
+    "expirationDate": example,
     "hostOnly": false,
     "httpOnly": true,
     "name": "example",
@@ -15,7 +15,7 @@
 },
 {
     "domain": ".baidu.com",
-    "expirationDate": example
+    "expirationDate": example,
     "hostOnly": false,
     "httpOnly": false,
     "name": "example",
@@ -29,7 +29,7 @@
 },
 {
     "domain": ".baidu.com",
-    "expirationDate": example
+    "expirationDate": example,
     "hostOnly": false,
     "httpOnly": false,
     "name": "example",
@@ -43,7 +43,7 @@
 },
 {
     "domain": ".baidu.com",
-    "expirationDate": example
+    "expirationDate": example,
     "hostOnly": false,
     "httpOnly": true,
     "name": "example",
@@ -57,7 +57,7 @@
 },
 {
     "domain": ".baidu.com",
-    "expirationDate": example
+    "expirationDate": example,
     "hostOnly": false,
     "httpOnly": false,
     "name": "example",
@@ -84,7 +84,7 @@
 },
 {
     "domain": ".baidu.com",
-    "expirationDate": example
+    "expirationDate": example,
     "hostOnly": false,
     "httpOnly": false,
     "name": "example",
@@ -98,7 +98,7 @@
 },
 {
     "domain": ".baidu.com",
-    "expirationDate": example
+    "expirationDate": example,
     "hostOnly": false,
     "httpOnly": false,
     "name": "example",
@@ -112,7 +112,7 @@
 },
 {
     "domain": ".baidu.com",
-    "expirationDate": example
+    "expirationDate": example,
     "hostOnly": false,
     "httpOnly": false,
     "name": "example",
@@ -126,7 +126,7 @@
 },
 {
     "domain": ".tieba.baidu.com",
-    "expirationDate": example
+    "expirationDate": example,
     "hostOnly": false,
     "httpOnly": false,
     "name": "example",
@@ -153,7 +153,7 @@
 },
 {
     "domain": ".tieba.baidu.com",
-    "expirationDate": example
+    "expirationDate": example,
     "hostOnly": false,
     "httpOnly": false,
     "name": "example",
@@ -167,7 +167,7 @@
 },
 {
     "domain": ".tieba.baidu.com",
-    "expirationDate": example
+    "expirationDate": example,
     "hostOnly": false,
     "httpOnly": false,
     "name": "example",
@@ -181,7 +181,7 @@
 },
 {
     "domain": ".tieba.baidu.com",
-    "expirationDate": example
+    "expirationDate": example,
     "hostOnly": false,
     "httpOnly": true,
     "name": "example",
@@ -195,7 +195,7 @@
 },
 {
     "domain": ".tieba.baidu.com",
-    "expirationDate": example
+    "expirationDate": example,
     "hostOnly": false,
     "httpOnly": false,
     "name": "example",
@@ -209,7 +209,7 @@
 },
 {
     "domain": ".tieba.baidu.com",
-    "expirationDate": example
+    "expirationDate": example,
     "hostOnly": false,
     "httpOnly": false,
     "name": "example",
@@ -223,7 +223,7 @@
 },
 {
     "domain": "tieba.baidu.com",
-    "expirationDate": example
+    "expirationDate": example,
     "hostOnly": true,
     "httpOnly": false,
     "name": "example",
@@ -237,7 +237,7 @@
 },
 {
     "domain": "tieba.baidu.com",
-    "expirationDate": example
+    "expirationDate": example,
     "hostOnly": true,
     "httpOnly": false,
     "name": "example",
@@ -251,7 +251,7 @@
 },
 {
     "domain": "tieba.baidu.com",
-    "expirationDate": example
+    "expirationDate": example,
     "hostOnly": true,
     "httpOnly": false,
     "name": "example",
