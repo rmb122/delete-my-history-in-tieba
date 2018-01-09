@@ -15,7 +15,8 @@ pip install selenium<br>
 Delete reply by urllib.py<br>
 </h3>
 需要在相同目录下添加自己的cookie文件,JSON格式<br>
-帖子多的话可以改成pyw每次开机自动运行<br>
+我用的是chrome的<a href="https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg">EditThisCookie</a>插件,可以直接导出JSON的Cookie<br>
+帖子多的话可以改成pyw每次开机自动运行<br><br>
 <h3>
 TieBaDeleter.py<br>
 </h3>

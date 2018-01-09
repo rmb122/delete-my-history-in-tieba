@@ -39,7 +39,7 @@ else:
     sys.exit(0) #同一天退出程序 
 
 
-cookiePath=sys.path[0]+'\\cookie.txt' #读取cookie
+cookiePath=sys.path[0]+'\\cookie.json' #读取cookie
 cookieFile=open(cookiePath)
 cookie=cookieFile.read()
 cookie=cookie.replace('\n','')
