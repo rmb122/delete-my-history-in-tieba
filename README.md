@@ -14,9 +14,11 @@ pip install selenium<br>
 <h3>
 Delete reply by urllib.py<br>
 </h3>
+用urllib重构的版本，删的更快些<br>
 需要在相同目录下添加自己的cookie文件,JSON格式<br>
 我用的是chrome的<a href="https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg">EditThisCookie</a>插件,可以直接导出JSON的Cookie<br>
-帖子多的话可以改成pyw每次开机自动运行<br><br>
+帖子多的话可以改成pyw每次开机自动运行<br>
+Delete reply by urllib_server.py即是这个的Linux服务器版，加入到计划任务中每日运行就可以啦<br><br>
 <h3>
 TieBaDeleter.py<br>
 </h3>
