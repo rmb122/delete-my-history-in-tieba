@@ -85,7 +85,7 @@ for reply in replyList:
     pid=reply[2]
     cid=reply[3] 
     tbs=getTbs(opener)
-    if cid==0: #对应的是楼中楼id,如果是0的话说明这条回复是一整楼.反之这条回复是一个楼中楼.
+    if cid=='0': #对应的是楼中楼id,如果是0的话说明这条回复是一整楼.反之这条回复是一个楼中楼.
         postData={
             'ie':'utf-8',
             'tbs':tbs,
