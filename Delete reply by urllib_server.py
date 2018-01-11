@@ -1,5 +1,6 @@
 ﻿from urllib import request
 from urllib import parse
+from urllib import error
 import sys
 import json
 import re
@@ -20,14 +21,12 @@ def getTbs(opener):
         try:
             response=opener.open(request.Request(url="http://tieba.baidu.com/dc/common/tbs",headers=header))
             tbs=response.read().decode()
-        except:
+        except error.URLError:
             pass 
     tbs=json.loads(tbs)
     tbs=tbs['tbs']
     return tbs    
     
-class timeToQuit(Exception):  
-    pass   
     
 writeLog('\n'+time.asctime(time.localtime(time.time()))) 
     
@@ -68,10 +67,13 @@ while startPageNumber<=endPageNumber and failCount<5:
         pageSource=response.read().decode() 
         replyList+=listReg.findall(pageSource)       
         startPageNumber+=1
-    except:
+    except error.URLError:
         writeLog('Failed to Collect. Now retrying')
         failCount+=1
-        continue    
+        continue 
+    except UnicodeDecodeError: 
+        writeLog('Cookie has been expried, please update it')
+        sys.exit(0)    
 
 writeLog('Collected '+str(len(replyList))+' replies')        
 
@@ -114,16 +116,13 @@ for reply in replyList:
             success=True
             result=json.loads(response.read())
             if result['err_code'] == 220034: 
-                writeLog("Has been reached 30 per day")  
-                raise timeToQuit()
+                writeLog('Delete '+str(deleteCount)+' replies'+' Exit reason: Has been reached 30 per day')
+                sys.exit(0)
             if result['err_code'] != 230308:
                 deleteCount+=1                            
-            writeLog('Err_code: '+result['err_code']+"  "+'Error: '+result['error']+"  "+'Data: '+result['data']+"  "+'Delete Count: '+str(deleteCount)+"  "+'ID: '+str(tid))
+            writeLog('Err_code: '+str(result['err_code'])+"  "+'Error: '+str(result['error'])+"  "+'Data: '+str(result['data'])+"  "+'Delete Count: '+str(deleteCount)+"  "+'ID: '+str(tid))
             
-        except timeToQuit: 
-            writeLog('Delete '+str(deleteCount)+' replies'+' Exit reason: Has been reached 30 per day')
-            sys.exit(0)
-        except: 
+        except error.URLError: 
             writeLog('Failed to delete reply. Now retrying')
             pass     
             

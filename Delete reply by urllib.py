@@ -1,5 +1,6 @@
 from urllib import request
 from urllib import parse
+from urllib import error
 import sys
 import json
 import re
@@ -15,15 +16,13 @@ def getTbs(opener):
         try:
             response=opener.open(request.Request(url="http://tieba.baidu.com/dc/common/tbs",headers=header))
             tbs=response.read().decode()
-        except:
+        except error.URLError:
             pass 
     tbs=json.loads(tbs)
     tbs=tbs['tbs']
     return tbs
 
-class timeToQuit(Exception):  
-    pass      
-    
+'''    
 timePath=sys.path[0]+'\\lastTime.txt' 
 
 timeLast=0
@@ -40,7 +39,7 @@ if timeLast!=timeNow:
     timeFile.close()  
 else:
     sys.exit(0) #同一天退出程序 
-
+'''
 
 cookiePath=sys.path[0]+'\\cookie.json' #读取cookie
 cookieFile=open(cookiePath)
@@ -72,9 +71,13 @@ while startPageNumber<=endPageNumber:
         pageSource=response.read().decode() #读取网页
         replyList+=listReg.findall(pageSource) #匹配回复列表        
         startPageNumber+=1
-    except:
+    except error.URLError:
         print('收集失败，重试中')
-        continue    
+        continue 
+        
+    except UnicodeDecodeError: #cookie过期会被重定向到http://static.tieba.baidu.com/tb/error.html?ErrType=1，用的是GBK编码。。所以会导致DecodeError。
+        print('Cookie过期或无效，请更换')
+        sys.exit(0)    
 
 print('共收集到',len(replyList),'条回复\n')
 print('开始删除')        
@@ -119,15 +122,13 @@ for reply in replyList:
             result=json.loads(response.read())
             if result['err_code'] == 220034: 
                 print("已经达到最高每日上限")  
-                raise timeToQuit()
+                print('本次共删除',deleteCount,'条')   
+                sys.exit(0)
             if result['err_code'] != 230308:
                 deleteCount+=1                            
             print('Err_code:',result['err_code'],"  ",'Error:',result['error'],"  ",'Data:',result['data'],"  ",'已删除',deleteCount,'条回复',"  ",'帖子ID',tid)
-            
-        except timeToQuit: #捕获退出的异常
-            print('本次共删除',deleteCount,'条')
-            sys.exit(0)
-        except: #捕获超时异常
+
+        except error.URLError: #捕获超时异常
             print('服务器大姨妈来了，重试中')
             pass     
             
