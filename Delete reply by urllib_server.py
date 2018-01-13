@@ -72,7 +72,7 @@ while startPageNumber<=endPageNumber and failCount<5:
         failCount+=1
         continue 
     except UnicodeDecodeError: 
-        writeLog('Cookie has been expried, please update it')
+        writeLog('Cookie has been expried. Please update it')
         sys.exit(0)    
 
 writeLog('Collected '+str(len(replyList))+' replies')        

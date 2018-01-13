@@ -73,8 +73,7 @@ while startPageNumber<=endPageNumber:
         startPageNumber+=1
     except error.URLError:
         print('收集失败，重试中')
-        continue 
-        
+        continue        
     except UnicodeDecodeError: #cookie过期会被重定向到http://static.tieba.baidu.com/tb/error.html?ErrType=1，用的是GBK编码。。所以会导致DecodeError。
         print('Cookie过期或无效，请更换')
         sys.exit(0)    
