@@ -114,7 +114,7 @@ for reply in replyList:
         try:
             response=opener.open(request.Request(url="http://tieba.baidu.com/f/commit/post/delete",headers=header),postData) 
             success=True
-            result=json.loads(response.read())
+            result=json.loads(response.read().decode())
             if result['err_code'] == 220034: 
                 writeLog('Delete '+str(deleteCount)+' replies'+' Exit reason: Has been reached 30 per day')
                 sys.exit(0)

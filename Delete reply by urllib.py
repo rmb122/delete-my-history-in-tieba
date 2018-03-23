@@ -118,7 +118,7 @@ for reply in replyList:
         try:
             response=opener.open(request.Request(url="http://tieba.baidu.com/f/commit/post/delete",headers=header),postData) #发送删帖请求
             success=True
-            result=json.loads(response.read())
+            result=json.loads(response.read().decode())
             if result['err_code'] == 220034: 
                 print("已经达到最高每日上限")  
                 print('本次共删除',deleteCount,'条')   
