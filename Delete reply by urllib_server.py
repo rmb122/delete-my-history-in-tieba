@@ -6,7 +6,7 @@ import json
 import re
 import time
     
-startPageNumber=3 
+startPageNumber=1 
 endPageNumber=10
 
 def writeLog(content):
