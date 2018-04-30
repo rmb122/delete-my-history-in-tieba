@@ -21,7 +21,7 @@ Delete-reply.py 只能删除回复但是速度快
 
 login() 登陆 替换成自己的用户密码即可  
 my_tie_collector() 获得自己发的帖子的链接  
-my_reply_collector() 获得自己回复的链接    
+my_reply_collector() 获得自己回复的链接  
 deleter_tie() 删除帖子 注意需配合 my_tie_collector() 和 my_reply_collector()  
 deleter_follows() 删除关注  
 deleter_fan() 删除粉丝  

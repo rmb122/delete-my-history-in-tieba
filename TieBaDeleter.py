@@ -16,7 +16,7 @@ def login(username, password):
 
     pageSouce = driver.page_source
     elementidPrefix = re.findall(r"(TANGRAM__PSP_[0-9]{1,})__footerULoginBtn", pageSouce)[0]
-    
+
     driver.find_element_by_id(elementidPrefix + "__footerULoginBtn").click()
     driver.find_element_by_id(elementidPrefix + "__userName").send_keys(username)
     driver.find_element_by_id(elementidPrefix + "__password").send_keys(password)
@@ -70,7 +70,7 @@ def deleter_tie(listOfLinks, username):  #增加对楼中楼的删除功能
             print("Deleted")
             continue
         except common.exceptions.NoSuchElementException:
-            print("Fail to find element,try next way")
+            print("Fail to find element, try next way")
 
         try:
             maincontent = driver.find_element_by_class_name("p_postlist")
@@ -81,13 +81,12 @@ def deleter_tie(listOfLinks, username):  #增加对楼中楼的删除功能
                     driver.find_element_by_link_text("删除").click()
                     break
                 except common.exceptions.NoSuchElementException:
-                    print("Fail to find element,try next herf")  #有可能别人@你导致选错元素，所以对每个超链接遍历一遍直到找到有删除按钮的
+                    print("Fail to find element, try next herf")  #有可能别人@你导致选错元素，所以对每个超链接遍历一遍直到找到有删除按钮的
             time.sleep(0.3)
-            driver.find_element_by_class_name(
-                "dialogJanswers").find_element_by_tag_name("input").click()
+            driver.find_element_by_class_name("dialogJanswers").find_element_by_tag_name("input").click()
             print("Deleted")
         except common.exceptions.NoSuchElementException:
-            print("Fail to find element,maybe your are in anonymous")
+            print("Fail to find element, maybe your are in anonymous")
 
 
 def deleter_follows():
