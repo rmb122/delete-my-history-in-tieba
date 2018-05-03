@@ -14,8 +14,9 @@ Delete-reply.py 只能删除回复但是速度快
 ## 安装ChromeDriver
 
 [下载ChromeDriver][1]  
+PS. 注意下载对应 Chrome 版本的 ChromeDriver  
 放在 Chrome 的安装位置 (默认在C:\Program Files (x86)\Google\Chrome\Application)  
-最后将 Chrome 的安装位置添加到系统环境变量的 PATH 当中即可  
+最后将 Chrome 的安装位置添加到系统环境变量的 PATH 当中即可  
 
 ## TieBaDeleter.py
 
