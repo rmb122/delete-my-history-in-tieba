@@ -13,7 +13,7 @@ Delete-reply.py 只能删除回复但是速度快
 
 ## 安装ChromeDriver
 
-[下载ChromeDriver](1)  
+[下载ChromeDriver][1]  
 放在 Chrome 的安装位置 (默认在C:\Program Files (x86)\Google\Chrome\Application)  
 最后将 Chrome 的安装位置添加到系统环境变量的 PATH 当中即可  
 
@@ -32,7 +32,7 @@ deleter_BaIFollow() 删除自己关注的吧
 
 用 requests 重构的删除回复版本, 删的比 selenium 快很多  
 需要在 cookie.json 中添加自己的 Cookie, JSON 格式  
-我用的是 Chrome 的 [EditThisCookie](2) 插件, 可以直接导出 JSON 下的 Cookie  
+我用的是 Chrome 的 [EditThisCookie][2] 插件, 可以直接导出 JSON 下的 Cookie  
 
 帖子多的话可以放在 vps 上每天自动运行, 加入到计划任务中就可以啦  
 PS: 记得根据自己的情况调整在文件中的搜索回复贴子的起始和结束页码 (百度有各种奇葩的 bug)  
