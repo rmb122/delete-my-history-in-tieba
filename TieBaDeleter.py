@@ -12,7 +12,7 @@ def login(username, password):
     urlusername = urllib.request.quote(username)
     driver.get("http://tieba.baidu.com/home/main?un=" + urlusername + "&fr=home")
     driver.find_element_by_class_name("u_login").click()
-    time.sleep(0.5)
+    time.sleep(2)
 
     pageSouce = driver.page_source
     elementidPrefix = re.findall(r"(TANGRAM__PSP_[0-9]{1,})__footerULoginBtn", pageSouce)[0]
@@ -143,10 +143,10 @@ def Start_with_Chrome():
     return driver
 
 
-driver = Start_with_Chrome()  #使用 Start_with_Chrome_without_images 速度更快但注意 deleter_BaIFollow 不能使用
+driver = Start_with_Chrome_without_images()  #使用 Start_with_Chrome 才能使用 deleter_BaIFollow
 login("Here is your username", "Here is your password")
 deleter_tie(my_reply_collector(), "Here is your username")  #或者 my_tie_collector()
 deleter_fans()
 deleter_follows()
-deleter_BaIFollow()
+#deleter_BaIFollow()
 print("All done")
