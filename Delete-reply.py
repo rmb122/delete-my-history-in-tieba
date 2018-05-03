@@ -44,7 +44,7 @@ def getReplyList(sess, startPageNumber, endPageNumber):
 
         if res.url == "http://static.tieba.baidu.com/tb/error.html?ErrType=1":
             print("Cookie has been expried, Please update it")
-            return
+            exit(0)
 
         html = bs4.BeautifulSoup(res.text, "lxml")
         elements = html.find_all(name="a", attrs={"class": "b_reply"})
