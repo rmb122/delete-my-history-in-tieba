@@ -142,11 +142,11 @@ def Start_with_Chrome():
     driver = webdriver.Chrome()
     return driver
 
-
-driver = Start_with_Chrome_without_images()  #使用 Start_with_Chrome 才能使用 deleter_BaIFollow
+#driver = Start_with_Chrome_without_images()  #不加载图片可以提高速度但是无法删除关注的贴吧
+driver = Start_with_Chrome()
 login("Here is your username", "Here is your password")
-deleter_tie(my_reply_collector(), "Here is your username")  #或者 my_tie_collector()
+deleter_tie(my_tie_collector(), "Here is your username")
 deleter_fans()
 deleter_follows()
-#deleter_BaIFollow()
+deleter_BaIFollow()
 print("All done")
