@@ -35,7 +35,8 @@
 最后打开 `TieBaDeleter.py`, 替换成自己的用户名和密码  
 ![][19]  
 
-这个时候双击两个 `.py` 文件, 应该就可以运行了~
+这个时候双击两个 `.py` 文件, 应该就可以运行了~  
+PS: 觉得好用的话点个 `Star` 吧 \_(:з」∠)\_
 
 [1]: https://www.python.org/
 [2]: http://i.imgur.com/o3wdzlk.png

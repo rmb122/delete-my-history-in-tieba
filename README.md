@@ -38,6 +38,7 @@ deleter_BaIFollow() 删除自己关注的吧
 
 帖子多的话可以放在 vps 上每天自动运行, 加入到计划任务中就可以啦  
 PS: 记得根据自己的情况调整在文件中的搜索回复贴子的起始和结束页码 (百度有各种奇葩的 bug)  
+PSS: 觉得好用的话点个 `Star` 吧 \_(:з」∠)\_
 
 [1]: https://sites.google.com/a/chromium.org/chromedriver/downloads
 [2]: https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg
