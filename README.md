@@ -10,7 +10,9 @@ pip install -r requirements.txt
 运行在Python 3.6  
 TieBaDeleter.py 可以删除关注、粉丝、帖子、回复  
 Delete-reply.py 只能删除回复但是速度更快  
-如果你是个小白的话, 请参阅[傻瓜教程][3]
+如果你是个小白的话, 请参阅[傻瓜教程][3]  
+
+PS: 不要在意项目名中的 `hisroy`, 手滑不小心打错了 (逃
 
 ## 安装ChromeDriver
 
