@@ -8,6 +8,8 @@ from selenium import common, webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
+USER_NAME = "将这里换成你的百度用户名"
+PASSWORD = "将这里换成你的百度账号密码"
 
 def login(username, password):
     print("Spider started")
@@ -146,8 +148,8 @@ def Start_with_Chrome():
 
 #driver = Start_with_Chrome_without_images()  #不加载图片可以提高速度但是无法删除关注的贴吧
 driver = Start_with_Chrome()
-login("Here is your username", "Here is your password")
-deleter_tie(my_tie_collector(), "Here is your username")
+login(USER_NAME, PASSWORD)
+deleter_tie(my_tie_collector(), USER_NAME)
 deleter_fans()
 deleter_follows()
 deleter_BaIFollow()

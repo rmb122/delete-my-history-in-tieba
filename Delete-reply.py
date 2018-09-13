@@ -7,8 +7,8 @@ import sys
 import bs4
 import requests
 
-startPageNumber = 1
-endPageNumber = 3
+startPageNumber = 1 # 在这里可以自行修改删除帖子的页数范围
+endPageNumber = 3   # 比如这里默认 1-3 就只删除 http://tieba.baidu.com/i/i/my_reply 中 1-3 页的回复
 
 
 def loadCookie(sess):
@@ -83,7 +83,8 @@ def deleteReply(sess, replyList):
 
         print(res.text)
 
-        if res.json()["err_code"] == 220034: #达到上限
+        if res.json()["err_code"] == 220034:  #达到上限
+            print("Limit exceeded, exiting.")
             return
 
 
