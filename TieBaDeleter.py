@@ -8,11 +8,13 @@ from selenium import common, webdriver
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
-USER_NAME = "将这里换成你的百度用户名"
-PASSWORD = "将这里换成你的百度账号密码"
+USER_NAME = "把这里换成你的百度用户名"
+PASSWORD = "把这里换成你的百度账号密码"
 
 def login(username, password):
-    print("Spider started")
+    print("正在启动")
+    print("因为最近 Chrome 有大版本更新，如果出现错误请确认 ChromeDriver 已经升级到最新版本")
+
     urlusername = urllib.request.quote(username)
     driver.get("http://tieba.baidu.com/home/main?un=" + urlusername + "&fr=home")
     driver.find_element_by_class_name("u_login").click()
@@ -25,7 +27,10 @@ def login(username, password):
     driver.find_element_by_id(elementidPrefix + "__userName").send_keys(username)
     driver.find_element_by_id(elementidPrefix + "__password").send_keys(password)
     driver.find_element_by_id(elementidPrefix + "__submit").click()
-    time.sleep(3)
+
+    print("等待输入验证码，输入完成确定后请在此处按回车")
+    input()
+    print("正在运行...")
 
 
 def my_tie_collector():
@@ -40,7 +45,7 @@ def my_tie_collector():
     for i in range(0, len(listOfElements)):
         listOfLinks.append(listOfElements[i].get_attribute("href"))
 
-    print("Links of Tie Collected")
+    print("帖子链接收集完成")
     return listOfLinks
 
 
@@ -56,12 +61,12 @@ def my_reply_collector():
     for i in range(0, len(listOfElements)):
         listOfLinks.append(listOfElements[i].get_attribute("href"))
 
-    print("Links of Reply Collected")
+    print("帖子链接收集完成")
     return listOfLinks
 
 
 def deleter_tie(listOfLinks, username):  #增加对楼中楼的删除功能
-    print("Now Deleting")
+    print("正在删除...")
     for i in range(0, len(listOfLinks)):
         try:
             driver.get(listOfLinks[i])
@@ -71,10 +76,10 @@ def deleter_tie(listOfLinks, username):  #增加对楼中楼的删除功能
             element.click()
             time.sleep(0.3)
             driver.find_element_by_class_name("dialogJanswers").find_element_by_tag_name("input").click()
-            print("Deleted")
+            print("删除成功")
             continue
         except common.exceptions.NoSuchElementException:
-            print("Fail to find element, try next way")
+            print("删除失败，尝试下一种搜寻方式")
 
         try:
             maincontent = driver.find_element_by_class_name("p_postlist")
@@ -88,9 +93,9 @@ def deleter_tie(listOfLinks, username):  #增加对楼中楼的删除功能
                     print("Fail to find element, try next herf")  #有可能别人@你导致选错元素，所以对每个超链接遍历一遍直到找到有删除按钮的
             time.sleep(0.3)
             driver.find_element_by_class_name("dialogJanswers").find_element_by_tag_name("input").click()
-            print("Deleted")
+            print("删除成功")
         except common.exceptions.NoSuchElementException:
-            print("Fail to find element, maybe your are in anonymous")
+            print("仍然删除，可能是以匿名发表")
 
 
 def deleter_follows():
@@ -101,7 +106,7 @@ def deleter_follows():
             driver.find_element_by_class_name("dialogJbtn").click()
             time.sleep(0.5)
         except common.exceptions.NoSuchElementException:
-            print("Follows has been all deleted")
+            print("关注已经删除完毕")
             break
 
 
@@ -115,7 +120,7 @@ def deleter_fans():
             driver.find_element_by_class_name("dialogJbtn").click()
             time.sleep(0.5)
         except common.exceptions.NoSuchElementException:
-            print("Fans has been all deleted")
+            print("粉丝已经删除完毕")
             break
 
 
@@ -128,7 +133,7 @@ def deleter_BaIFollow():  #使用此功能需打开图片显示
             driver.find_element_by_class_name("dialogJbtn").click()
             time.sleep(0.5)
         except common.exceptions.NoSuchElementException:
-            print("BaIFollows has been all deleted")
+            print("关注的贴吧已经删除完毕")
             break
 
 
@@ -153,4 +158,4 @@ deleter_tie(my_tie_collector(), USER_NAME)
 deleter_fans()
 deleter_follows()
 deleter_BaIFollow()
-print("All done")
+print("全部完成")

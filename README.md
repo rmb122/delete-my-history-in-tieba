@@ -5,6 +5,7 @@
 ```sh  
 pip install -r requirements.txt
 ```
+
 注意还需要安装 ChromeDriver 才可以使用 TieBaDeleter.py  
 
 运行在Python 3.6  
