@@ -26,7 +26,7 @@
 
 这个时候双击 `DeleteMyHistory.py`, 应该就可以运行了~  
 PS: 觉得好用的话点个 `Star` 吧 \_(:з」∠)\_  
-PSS: 还有疑问的话可以在 `issues` 里提出, 有空的话我会尽量解决的
+PSS: 还有疑问或者遇到 `bug` 的话可以在 `issues` 里提出, 有空的话我会尽量解决的
 
 [1]: https://www.python.org/
 [2]: http://i.imgur.com/o3wdzlk.png
