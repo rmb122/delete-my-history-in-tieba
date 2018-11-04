@@ -1,0 +1,27 @@
+{
+    "thread": {
+        "enable": true,
+        "start": 1,
+        "end": 5
+    },
+    "reply": {
+        "enable": true,
+        "start": 1,
+        "end": 5
+    },
+    "followedBa": {
+        "enable": true,
+        "start": 1,
+        "end": 3
+    },
+    "concern": {
+        "enable": true,
+        "start": 1,
+        "end": 5
+    },
+    "fans": {
+        "enable": true,
+        "start": 1,
+        "end": 5
+    }
+}
