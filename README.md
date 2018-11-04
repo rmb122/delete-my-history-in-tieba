@@ -49,7 +49,8 @@ PS: 不要在意项目名中的 `hisroy`, 手滑不小心打错了 (逃
 
 帖子多的话可以放在 vps 上每天自动运行, 加入到计划任务中就可以啦  
 PS: 记得根据自己的情况调整在文件中的搜索回复贴子的起始和结束页码 (百度有各种奇葩的 bug)  
-PSS: 觉得好用的话点个 `Star` 吧 \_(:з」∠)\_
+PS2: 觉得好用的话点个 `Star` 吧 \_(:з」∠)\_
+PS3: 还有疑问的话可以在 `issues` 里提出, 有空的话我会尽量解决的
 
 [1]: https://sites.google.com/a/chromium.org/chromedriver/downloads
 [2]: https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg
