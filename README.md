@@ -6,9 +6,9 @@
 pip install -r requirements.txt
 ```
 
-运行环境为 `Python 3.6`  
+运行环境为 `Python >= 3`  
 `DeleteMyHistory.py` 删除你的回复、主题帖、关注、粉丝、关注的吧  
-`TieBaDeleter.py` 用 webdriver 模拟操作删除, 速度慢, 已经废弃, 请用 `DeleteMyHistory.py`  
+`WebDriver.py` 用 webdriver 模拟操作删除, 速度慢, 已经废弃, 请用 `DeleteMyHistory.py`  
 如果你是个小白的话, 请参阅[傻瓜教程][3]  
 
 PS: 不要在意项目名中的 `hisroy`, 手滑不小心打错了 (逃
