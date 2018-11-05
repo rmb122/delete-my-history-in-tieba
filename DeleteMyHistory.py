@@ -12,7 +12,7 @@ import requests
 def loadCookie(sess):
     cookies = open("/".join([sys.path[0], "cookie.json"])).read().replace("\n", "")
     cookies = json.loads(cookies)
-    sess.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/63.0.3239.108 Safari/537.36"
+    sess.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36"
     for cookie in cookies:
         sess.cookies[cookie["name"]] = cookie["value"]
 
@@ -203,6 +203,11 @@ def deleteFans(sess, fansList):
         print(res.text)
 
 
+def check(obj):
+    if obj is None:
+        exit(0)
+
+
 def main():
     config = open("/".join([sys.path[0], "config.json"])).read().replace("\n", "")
     config = json.loads(config)
@@ -211,38 +216,38 @@ def main():
 
     if config["thread"]["enable"]:
         threadList = getThreadList(sess, config["thread"]["start"], config["thread"]["end"])
-        if threadList:
-            print("Collected", len(threadList), "threads", end="\n\n")
-            deleteThread(sess, threadList)
-            print(len(threadList), "threads has been deleted.", end="\n\n")
+        check(threadList)
+        print("Collected", len(threadList), "threads", end="\n\n")
+        deleteThread(sess, threadList)
+        print(len(threadList), "threads has been deleted.", end="\n\n")
         
     if config["reply"]["enable"]:
         replyList = getReplyList(sess, config["reply"]["start"], config["reply"]["end"])
-        if replyList:
-            print("Collected", len(replyList), "replys", end="\n\n")
-            deleteThread(sess, replyList)
-            print(len(replyList), "replys has been deleted.", end="\n\n")
+        check(replyList)
+        print("Collected", len(replyList), "replys", end="\n\n")
+        deleteThread(sess, replyList)
+        print(len(replyList), "replys has been deleted.", end="\n\n")
 
     if config["followedBa"]["enable"]:
         baList = getFollowedBaList(sess, config["followedBa"]["start"], config["followedBa"]["end"])
-        if baList:
-            print("Collected", len(baList), "followed Ba", end="\n\n")
-            deleteFollowedBa(sess, baList)
-            print(len(baList), "followed Ba has been deleted.", end="\n\n")
+        check(baList)
+        print("Collected", len(baList), "followed Ba", end="\n\n")
+        deleteFollowedBa(sess, baList)
+        print(len(baList), "followed Ba has been deleted.", end="\n\n")
 
     if config["concern"]["enable"]:
         concernList = getConcerns(sess, config["concern"]["start"], config["concern"]["end"])
-        if concernList:
-            print("Collected", len(concernList), "concerns", end="\n\n")
-            deleteConcern(sess, concernList)
-            print(len(concernList), "concerns has been deleted.", end="\n\n")
+        check(concernList)
+        print("Collected", len(concernList), "concerns", end="\n\n")
+        deleteConcern(sess, concernList)
+        print(len(concernList), "concerns has been deleted.", end="\n\n")
 
     if config["fans"]["enable"]:
         fansList = getFans(sess, config["fans"]["start"], config["fans"]["end"])
-        if fansList:
-            print("Collected", len(fansList), "fans", end="\n\n")
-            deleteFans(sess, fansList)
-            print(len(fansList), "fans has been deleted.", end="\n\n")
+        check(fansList)
+        print("Collected", len(fansList), "fans", end="\n\n")
+        deleteFans(sess, fansList)
+        print(len(fansList), "fans has been deleted.", end="\n\n")
 
 
 if __name__ == "__main__":
