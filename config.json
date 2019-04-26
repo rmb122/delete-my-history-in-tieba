@@ -10,17 +10,17 @@
         "end": 5
     },
     "followedBa": {
-        "enable": true,
+        "enable": false,
         "start": 1,
         "end": 3
     },
     "concern": {
-        "enable": true,
+        "enable": false,
         "start": 1,
         "end": 5
     },
     "fans": {
-        "enable": true,
+        "enable": false,
         "start": 1,
         "end": 5
     }
