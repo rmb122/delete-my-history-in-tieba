@@ -177,7 +177,7 @@ def deleteThread(sess, threadList):
             return count
         else:
             count += 1
-            
+
     return count
 
 
@@ -224,14 +224,22 @@ def main():
         check(threadList)
         print("Collected", len(threadList), "threads", end="\n\n")
         count = deleteThread(sess, threadList)
-        print(count, "threads has been deleted.", end="\n\n")
+        print(count, "threads has been deleted", end="")
+        if len(threadList) != count:
+            print(", left", len(threadList) - count, "threads due to limit exceeded.", end="\n\n")
+        else:
+            print(".", end="\n\n")
         
     if config["reply"]["enable"]:
         replyList = getReplyList(sess, config["reply"]["start"], config["reply"]["end"])
         check(replyList)
         print("Collected", len(replyList), "replys", end="\n\n")
         count = deleteThread(sess, replyList)
-        print(count, "replys has been deleted.", end="\n\n")
+        print(count, "replys has been deleted", end="")
+        if len(replyList) != count:
+            print(", left", len(replyList) - count, "replys due to limit exceeded.", end="\n\n")
+        else:
+            print(".", end="\n\n")
 
     if config["followedBa"]["enable"]:
         baList = getFollowedBaList(sess, config["followedBa"]["start"], config["followedBa"]["end"])
