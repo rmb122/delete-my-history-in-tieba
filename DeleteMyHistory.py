@@ -160,6 +160,7 @@ def getFans(sess, startPageNumber, endPageNumber):
 
 def deleteThread(sess, threadList):
     url = "https://tieba.baidu.com/f/commit/post/delete"
+    count = 0
 
     for threadDict in threadList:
         print("Now deleting", threadDict)
@@ -173,7 +174,11 @@ def deleteThread(sess, threadList):
 
         if res.json()["err_code"] == 220034:  #达到上限
             print("Limit exceeded, exiting.")
-            return
+            return count
+        else:
+            count += 1
+            
+    return count
 
 
 def deleteFollowedBa(sess, baList):
@@ -218,15 +223,15 @@ def main():
         threadList = getThreadList(sess, config["thread"]["start"], config["thread"]["end"])
         check(threadList)
         print("Collected", len(threadList), "threads", end="\n\n")
-        deleteThread(sess, threadList)
-        print(len(threadList), "threads has been deleted.", end="\n\n")
+        count = deleteThread(sess, threadList)
+        print(count, "threads has been deleted.", end="\n\n")
         
     if config["reply"]["enable"]:
         replyList = getReplyList(sess, config["reply"]["start"], config["reply"]["end"])
         check(replyList)
         print("Collected", len(replyList), "replys", end="\n\n")
-        deleteThread(sess, replyList)
-        print(len(replyList), "replys has been deleted.", end="\n\n")
+        count = deleteThread(sess, replyList)
+        print(count, "replys has been deleted.", end="\n\n")
 
     if config["followedBa"]["enable"]:
         baList = getFollowedBaList(sess, config["followedBa"]["start"], config["followedBa"]["end"])
