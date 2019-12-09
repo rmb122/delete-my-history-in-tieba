@@ -279,6 +279,8 @@ def main():
 
     if GetConfig("DryRun"):
         print("In dry run mode, nothing will be deleted, your data is safe.")
+    else:
+        print("Not in dry run mode, your operation will be committed and may be not recoverable.")
 
     if config["thread"]["enable"]:
         threadList = getThreadList(sess, config["thread"]["start"], config["thread"]["end"])
@@ -287,7 +289,7 @@ def main():
         count = deleteThread(sess, threadList)
         print(count, "threads has been deleted", end="")
         if len(threadList) != count:
-            print(", left", len(threadList) - count, "threads due to limit exceeded or in dry run mode.", end="\n\n")
+            print(", left", len(threadList) - count, "threads due to limit exceeded or in dry run mode, or cancelled by user operation.", end="\n\n")
         else:
             print(".", end="\n\n")
         
@@ -298,7 +300,7 @@ def main():
         count = deleteThread(sess, replyList)
         print(count, "replys has been deleted", end="")
         if len(replyList) != count:
-            print(", left", len(replyList) - count, "replys due to limit exceeded or in dry run mode.", end="\n\n")
+            print(", left", len(replyList) - count, "replys due to limit exceeded or in dry run mode, or cancelled by user operation.", end="\n\n")
         else:
             print(".", end="\n\n")
 
