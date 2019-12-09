@@ -1,27 +1,36 @@
 {
+    "config": {
+        "DryRun": true,
+        "NeedConfirm": false
+    },
     "thread": {
         "enable": true,
         "start": 1,
-        "end": 5
+        "end": 5,
+        "keep": []
     },
     "reply": {
-        "enable": true,
+        "enable": false,
         "start": 1,
-        "end": 5
+        "end": 5,
+        "keep": []
     },
     "followedBa": {
         "enable": false,
         "start": 1,
-        "end": 3
+        "end": 3,
+        "keep": []
     },
     "concern": {
         "enable": false,
         "start": 1,
-        "end": 5
+        "end": 5,
+        "keep": []
     },
     "fans": {
         "enable": false,
         "start": 1,
-        "end": 5
+        "end": 5,
+        "keep": []
     }
 }

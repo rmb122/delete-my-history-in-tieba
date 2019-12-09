@@ -8,6 +8,17 @@ import traceback
 import bs4
 import requests
 
+GlobalConfig = {}
+DefaultConfig = {
+    "DryRun": False,
+    "NeedConfirm": True
+}
+
+def GetConfig(key):
+    result = GetConfig(key] or DefaultConfig[key)
+    if not result:
+        raise RuntimeError("Invalid key {}.".format(key))
+    return result
 
 def loadCookie(sess):
     cookies = open("/".join([sys.path[0], "cookie.json"])).read().replace("\n", "")
@@ -161,51 +172,79 @@ def getFans(sess, startPageNumber, endPageNumber):
 def deleteThread(sess, threadList):
     url = "https://tieba.baidu.com/f/commit/post/delete"
     count = 0
+    dry_run = GetConfig("DryRun")
+    need_confirm = GetConfig("NeedConfirm")
 
     for threadDict in threadList:
+        if need_confirm:
+            user_input = input("Delete {}? [y]/n: ".format(threadDict))
+            if user_input == "n":
+                continue
         print("Now deleting", threadDict)
-        postData = dict()
-        postData["tbs"] = getTbs(sess)
-        for idName in threadDict:
-            postData[idName] = threadDict[idName]
-        res = sess.post(url, data=postData)
+        if not dry_run:
+            postData = dict()
+            postData["tbs"] = getTbs(sess)
+            for idName in threadDict:
+                postData[idName] = threadDict[idName]
+            res = sess.post(url, data=postData)
 
-        print(res.text)
-
-        if res.json()["err_code"] == 220034:  #达到上限
-            print("Limit exceeded, exiting.")
-            return count
-        else:
-            count += 1
+            print(res.text)
+    
+            if res.json()["err_code"] == 220034:  #达到上限
+                print("Limit exceeded, exiting.")
+                return count
+            else:
+                count += 1
 
     return count
 
 
 def deleteFollowedBa(sess, baList):
     url = "https://tieba.baidu.com/f/like/commit/delete"
+    dry_run = GetConfig("DryRun")
+    need_confirm = GetConfig("NeedConfirm")
 
     for ba in baList:
+        if need_confirm:
+            user_input = input("Unfollow {}? [y]/n: ".format(ba))
+            if user_input == "n":
+                continue
         print("Now unfollowing", ba)
-        res = sess.post(url, data=ba)
-        print(res.text)
+        if not dry_run:
+            res = sess.post(url, data=ba)
+            print(res.text)
 
 
 def deleteConcern(sess, concernList):
     url = "https://tieba.baidu.com/home/post/unfollow"
+    dry_run = GetConfig("DryRun")
+    need_confirm = GetConfig("NeedConfirm")
 
     for concern in concernList:
+        if need_confirm:
+            user_input = input("Unfollow {}? [y]/n: ".format(concern))
+            if user_input == "n":
+                continue
         print("Now unfollowing", concern)
-        res = sess.post(url, data=concern)
-        print(res.text)
+        if not dry_run:
+            res = sess.post(url, data=concern)
+            print(res.text)
 
 
 def deleteFans(sess, fansList):
     url = "https://tieba.baidu.com/i/commit"
+    dry_run = GetConfig("DryRun")
+    need_confirm = GetConfig("NeedConfirm")
 
     for fans in fansList:
+        if need_confirm:
+            user_input = input("Block {}? [y]/n: ".format(fans))
+            if user_input == "n":
+                continue
         print("Now blocking fans", fans)
-        res = sess.post(url, data=fans)
-        print(res.text)
+        if not dry_run:
+            res = sess.post(url, data=fans)
+            print(res.text)
 
 
 def check(obj):
@@ -214,10 +253,16 @@ def check(obj):
 
 
 def main():
+    global GlobalConfig
+
     config = open("/".join([sys.path[0], "config.json"])).read().replace("\n", "")
     config = json.loads(config)
+    GlobalConfig = config["config"] or DefaultConfig
     sess = requests.session()
     loadCookie(sess)
+
+    if GetConfig("DryRun"):
+        print("In dry run mode, nothing will be deleted, your data is safe.")
 
     if config["thread"]["enable"]:
         threadList = getThreadList(sess, config["thread"]["start"], config["thread"]["end"])
@@ -226,7 +271,7 @@ def main():
         count = deleteThread(sess, threadList)
         print(count, "threads has been deleted", end="")
         if len(threadList) != count:
-            print(", left", len(threadList) - count, "threads due to limit exceeded.", end="\n\n")
+            print(", left", len(threadList) - count, "threads due to limit exceeded or in dry run mode.", end="\n\n")
         else:
             print(".", end="\n\n")
         
@@ -237,7 +282,7 @@ def main():
         count = deleteThread(sess, replyList)
         print(count, "replys has been deleted", end="")
         if len(replyList) != count:
-            print(", left", len(replyList) - count, "replys due to limit exceeded.", end="\n\n")
+            print(", left", len(replyList) - count, "replys due to limit exceeded or in dry run mode.", end="\n\n")
         else:
             print(".", end="\n\n")
 
