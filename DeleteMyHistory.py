@@ -15,8 +15,8 @@ DefaultConfig = {
 }
 
 def GetConfig(key):
-    result = GetConfig(key] or DefaultConfig[key)
-    if not result:
+    result = GlobalConfig.get(key, DefaultConfig[key])
+    if result is None:
         raise RuntimeError("Invalid key {}.".format(key))
     return result
 
