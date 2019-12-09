@@ -10,7 +10,7 @@
         "keep": []
     },
     "reply": {
-        "enable": false,
+        "enable": true,
         "start": 1,
         "end": 5,
         "keep": []

@@ -40,7 +40,7 @@ def getTbs(sess):
     tbs = res.json()["tbs"]
     return tbs
 
-
+ThreadExtraFields = ["title"]
 def getThreadList(sess, startPageNumber, endPageNumber):
     threadList = list()
     tidExp = re.compile(r"/([0-9]{1,})")
@@ -62,10 +62,11 @@ def getThreadList(sess, startPageNumber, endPageNumber):
             threadDict = dict()
             threadDict["tid"] = tidExp.findall(thread)[0]
             threadDict["pid"] = pidExp.findall(thread)[0]
+            threadDict["title"] = element.contents[0] if len(element.contents) > 0 else ""
             threadList.append(threadDict)
     return threadList
 
-
+ReplyExtraFields = ["content"]
 def getReplyList(sess, startPageNumber, endPageNumber):
     replyList = list()
     tidExp = re.compile(r"/([0-9]{1,})")
@@ -82,7 +83,7 @@ def getReplyList(sess, startPageNumber, endPageNumber):
             return
 
         html = bs4.BeautifulSoup(res.text, "lxml")
-        elements = html.find_all(name="a", attrs={"class": "b_reply"})
+        elements = html.find_all(name="a", attrs={"class": "for_reply_context"})
         for element in elements:
             reply = element.get("href")
             if reply.find("pid") != -1:
@@ -90,6 +91,7 @@ def getReplyList(sess, startPageNumber, endPageNumber):
                 pid = pidExp.findall(reply)
                 cid = cidExp.findall(reply)
                 replyDict = dict()
+                replyDict["content"] = element.contents[0] if len(element.contents) > 0 else ""
                 replyDict["tid"] = tid[0]
 
                 if cid and cid[0] != "0":  # 如果 cid != 0, 这个回复是楼中楼, 否则是一整楼的回复
@@ -99,7 +101,7 @@ def getReplyList(sess, startPageNumber, endPageNumber):
                 replyList.append(replyDict)
     return replyList
 
-
+FollowedBaExtraFields = ["title"]
 def getFollowedBaList(sess, startPageNumber, endPageNumber):
     baList = list()
     for number in range(startPageNumber, endPageNumber + 1):
@@ -112,16 +114,20 @@ def getFollowedBaList(sess, startPageNumber, endPageNumber):
             return
 
         html = bs4.BeautifulSoup(res.text, "lxml")
-        elements = html.find_all(name="span")
-        for element in elements:
+        forum_table = html.find(name="div", attrs={"class": "forum_table"}).contents[0].contents
+        for element in forum_table:
+            if element.contents[0].name != "td":
+                continue
             baDict = dict()
-            baDict["fid"] = element.get("balvid")
-            baDict["tbs"] = element.get("tbs")
-            baDict["fname"] = element.get("balvname")
+            baDict["title"] = element.contents[0].contents[0].get("title")
+            unfollow_button = element.contents[3].contents[0]
+            baDict["fid"] = unfollow_button.get("balvid")
+            baDict["tbs"] = unfollow_button.get("tbs")
+            baDict["fname"] = unfollow_button.get("balvname")
             baList.append(baDict)
     return baList
 
-
+ConcernExtraFields = ["name", "name_show"]
 def getConcerns(sess, startPageNumber, endPageNumber):
     concernList = list()
     for number in range(startPageNumber, endPageNumber + 1):
@@ -140,10 +146,12 @@ def getConcerns(sess, startPageNumber, endPageNumber):
             concernDict["cmd"] = "unfollow"
             concernDict["tbs"] = element.get("tbs")
             concernDict["id"] = element.get("portrait")
+            concernDict["name"] = element.get("name")
+            concernDict["name_show"] = element.get("name_show")
             concernList.append(concernDict)
     return concernList
 
-
+FanExtraFields = ["name"]
 def getFans(sess, startPageNumber, endPageNumber):
     fansList = list()
     tbsExp = re.compile(r"tbs : '([0-9a-zA-Z]{16})'")  # 居然还有一个短版 tbs.... 绝了
@@ -165,6 +173,7 @@ def getFans(sess, startPageNumber, endPageNumber):
             fanDict["cmd"] = "add_black_list"
             fanDict["tbs"] = tbs
             fanDict["portrait"] = element.get("portrait")
+            fanDict["name"] = element.get("name")
             fansList.append(fanDict)
     return fansList
 
@@ -185,7 +194,8 @@ def deleteThread(sess, threadList):
             postData = dict()
             postData["tbs"] = getTbs(sess)
             for idName in threadDict:
-                postData[idName] = threadDict[idName]
+                if idName not in ThreadExtraFields and idName not in ReplyExtraFields:
+                    postData[idName] = threadDict[idName]
             res = sess.post(url, data=postData)
 
             print(res.text)
@@ -211,6 +221,8 @@ def deleteFollowedBa(sess, baList):
                 continue
         print("Now unfollowing", ba)
         if not dry_run:
+            for key in FollowedBaExtraFields:
+                del ba[key]
             res = sess.post(url, data=ba)
             print(res.text)
 
@@ -227,6 +239,8 @@ def deleteConcern(sess, concernList):
                 continue
         print("Now unfollowing", concern)
         if not dry_run:
+            for key in ConcernExtraFields:
+                del concern[key]
             res = sess.post(url, data=concern)
             print(res.text)
 
@@ -243,6 +257,8 @@ def deleteFans(sess, fansList):
                 continue
         print("Now blocking fans", fans)
         if not dry_run:
+            for key in FanExtraFields:
+                del fans[key]
             res = sess.post(url, data=fans)
             print(res.text)
 
