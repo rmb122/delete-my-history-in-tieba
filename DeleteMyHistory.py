@@ -11,7 +11,8 @@ import requests
 GlobalConfig = {}
 DefaultConfig = {
     "DryRun": False,
-    "NeedConfirm": True
+    "NeedConfirm": True,
+    "DeferCommit": True
 }
 
 def GetConfig(key):
@@ -40,7 +41,6 @@ def getTbs(sess):
     tbs = res.json()["tbs"]
     return tbs
 
-ThreadExtraFields = ["title"]
 def getThreadList(sess, startPageNumber, endPageNumber):
     threadList = list()
     tidExp = re.compile(r"/([0-9]{1,})")
@@ -62,11 +62,11 @@ def getThreadList(sess, startPageNumber, endPageNumber):
             threadDict = dict()
             threadDict["tid"] = tidExp.findall(thread)[0]
             threadDict["pid"] = pidExp.findall(thread)[0]
-            threadDict["title"] = element.contents[0] if len(element.contents) > 0 else ""
-            threadList.append(threadDict)
+            threadExtraDict = dict()
+            threadExtraDict["title"] = element.contents[0] if len(element.contents) > 0 else ""
+            threadList.append((threadDict, threadExtraDict))
     return threadList
 
-ReplyExtraFields = ["content"]
 def getReplyList(sess, startPageNumber, endPageNumber):
     replyList = list()
     tidExp = re.compile(r"/([0-9]{1,})")
@@ -91,17 +91,17 @@ def getReplyList(sess, startPageNumber, endPageNumber):
                 pid = pidExp.findall(reply)
                 cid = cidExp.findall(reply)
                 replyDict = dict()
-                replyDict["content"] = element.contents[0] if len(element.contents) > 0 else ""
+                replyExtraDict = dict()
+                replyExtraDict["content"] = element.contents[0] if len(element.contents) > 0 else ""
                 replyDict["tid"] = tid[0]
 
                 if cid and cid[0] != "0":  # 如果 cid != 0, 这个回复是楼中楼, 否则是一整楼的回复
                     replyDict["pid"] = cid[0]
                 else:
                     replyDict["pid"] = pid[0]
-                replyList.append(replyDict)
+                replyList.append((replyDict, replyExtraDict))
     return replyList
 
-FollowedBaExtraFields = ["title"]
 def getFollowedBaList(sess, startPageNumber, endPageNumber):
     baList = list()
     for number in range(startPageNumber, endPageNumber + 1):
@@ -119,15 +119,15 @@ def getFollowedBaList(sess, startPageNumber, endPageNumber):
             if element.contents[0].name != "td":
                 continue
             baDict = dict()
-            baDict["title"] = element.contents[0].contents[0].get("title")
+            baExtraDict = dict()
+            baExtraDict["title"] = element.contents[0].contents[0].get("title")
             unfollow_button = element.contents[3].contents[0]
             baDict["fid"] = unfollow_button.get("balvid")
             baDict["tbs"] = unfollow_button.get("tbs")
             baDict["fname"] = unfollow_button.get("balvname")
-            baList.append(baDict)
+            baList.append((baDict, baExtraDict))
     return baList
 
-ConcernExtraFields = ["name", "name_show"]
 def getConcerns(sess, startPageNumber, endPageNumber):
     concernList = list()
     for number in range(startPageNumber, endPageNumber + 1):
@@ -143,15 +143,15 @@ def getConcerns(sess, startPageNumber, endPageNumber):
         elements = html.find_all(name="input", attrs={"class": "btn_unfollow"})
         for element in elements:
             concernDict = dict()
+            concernExtraDict = dict()
             concernDict["cmd"] = "unfollow"
             concernDict["tbs"] = element.get("tbs")
             concernDict["id"] = element.get("portrait")
-            concernDict["name"] = element.get("name")
-            concernDict["name_show"] = element.get("name_show")
-            concernList.append(concernDict)
+            concernExtraDict["name"] = element.get("name")
+            concernExtraDict["name_show"] = element.get("name_show")
+            concernList.append((concernDict, concernExtraDict))
     return concernList
 
-FanExtraFields = ["name"]
 def getFans(sess, startPageNumber, endPageNumber):
     fansList = list()
     tbsExp = re.compile(r"tbs : '([0-9a-zA-Z]{16})'")  # 居然还有一个短版 tbs.... 绝了
@@ -173,8 +173,9 @@ def getFans(sess, startPageNumber, endPageNumber):
             fanDict["cmd"] = "add_black_list"
             fanDict["tbs"] = tbs
             fanDict["portrait"] = element.get("portrait")
-            fanDict["name"] = element.get("name")
-            fansList.append(fanDict)
+            fanExtraDict = dict()
+            fanExtraDict["name"] = element.get("name")
+            fansList.append((fanDict, fanExtraDict))
     return fansList
 
 
@@ -183,19 +184,41 @@ def deleteThread(sess, threadList):
     count = 0
     dry_run = GetConfig("DryRun")
     need_confirm = GetConfig("NeedConfirm")
+    defer_commit = GetConfig("DeferCommit")
 
-    for threadDict in threadList:
-        if need_confirm:
-            user_input = input("Delete {}? [y]/n: ".format(threadDict))
+    if defer_commit:
+        defer_commit_list = list()
+        for threadDict in threadList:
+            if need_confirm:
+                user_input = input("Delete {}? [y]/n: ".format(threadDict))
+                if user_input == "n":
+                    continue
+            print("Adding {} to deferred deleting.".format(threadDict))
+            defer_commit_list.append(threadDict)
+
+        print("Threads will be deleted:")
+        for threadDict in defer_commit_list:
+            print("\t{}".format(threadDict))
+
+        if dry_run:
+            print("In dry run mode, dropped.")
+            return 0
+
+        while True:
+            user_input = input("Proceed? y/n: ")
             if user_input == "n":
-                continue
-        print("Now deleting", threadDict)
-        if not dry_run:
+                print("Operation is cancelled by user, dropped.")
+                return 0
+            elif user_input == "y":
+                break
+            else:
+                print("{} is not a valid answer.".format(user_input))
+
+        for threadDict in defer_commit_list:
+            print("Now deleting", threadDict)
             postData = dict()
             postData["tbs"] = getTbs(sess)
-            for idName in threadDict:
-                if idName not in ThreadExtraFields and idName not in ReplyExtraFields:
-                    postData[idName] = threadDict[idName]
+            postData.update(threadDict[0])
             res = sess.post(url, data=postData)
 
             print(res.text)
@@ -205,6 +228,26 @@ def deleteThread(sess, threadList):
                 return count
             else:
                 count += 1
+    else:
+        for threadDict in threadList:
+            if need_confirm:
+                user_input = input("Delete {}? [y]/n: ".format(threadDict))
+                if user_input == "n":
+                    continue
+            print("Now deleting", threadDict)
+            if not dry_run:
+                postData = dict()
+                postData["tbs"] = getTbs(sess)
+                postData.update(threadDict[0])
+                res = sess.post(url, data=postData)
+    
+                print(res.text)
+        
+                if res.json()["err_code"] == 220034:  #达到上限
+                    print("Limit exceeded, exiting.")
+                    return count
+                else:
+                    count += 1
 
     return count
 
@@ -213,54 +256,150 @@ def deleteFollowedBa(sess, baList):
     url = "https://tieba.baidu.com/f/like/commit/delete"
     dry_run = GetConfig("DryRun")
     need_confirm = GetConfig("NeedConfirm")
+    defer_commit = GetConfig("DeferCommit")
 
-    for ba in baList:
-        if need_confirm:
-            user_input = input("Unfollow {}? [y]/n: ".format(ba))
+    if defer_commit:
+        defer_commit_list = list()
+        for ba in baList:
+            if need_confirm:
+                user_input = input("Unfollow {}? [y]/n: ".format(ba))
+                if user_input == "n":
+                    continue
+            print("Adding {} to deferred unfollowing.".format(ba))
+            defer_commit_list.append(ba)
+
+        print("Bas will be unfollowing:")
+        for ba in defer_commit_list:
+            print("\t{}".format(ba))
+
+        if dry_run:
+            print("In dry run mode, dropped.")
+            return 0
+
+        while True:
+            user_input = input("Proceed? y/n: ")
             if user_input == "n":
-                continue
-        print("Now unfollowing", ba)
-        if not dry_run:
-            for key in FollowedBaExtraFields:
-                del ba[key]
-            res = sess.post(url, data=ba)
+                print("Operation is cancelled by user, dropped.")
+                return 0
+            elif user_input == "y":
+                break
+            else:
+                print("{} is not a valid answer.".format(user_input))
+
+        for ba in defer_commit_list:
+            print("Now unfollowing", ba)
+            res = sess.post(url, data=ba[0])
             print(res.text)
+    else:
+        for ba in baList:
+            if need_confirm:
+                user_input = input("Unfollow {}? [y]/n: ".format(ba))
+                if user_input == "n":
+                    continue
+            print("Now unfollowing", ba)
+            if not dry_run:
+                res = sess.post(url, data=ba[0])
+                print(res.text)
 
 
 def deleteConcern(sess, concernList):
     url = "https://tieba.baidu.com/home/post/unfollow"
     dry_run = GetConfig("DryRun")
     need_confirm = GetConfig("NeedConfirm")
+    defer_commit = GetConfig("DeferCommit")
 
-    for concern in concernList:
-        if need_confirm:
-            user_input = input("Unfollow {}? [y]/n: ".format(concern))
+    if defer_commit:
+        defer_commit_list = list()
+        for concern in concernList:
+            if need_confirm:
+                user_input = input("Unfollow {}? [y]/n: ".format(concern))
+                if user_input == "n":
+                    continue
+            print("Adding {} to deferred unfollowing.".format(concern))
+
+        print("Concerns will be unfollowed:")
+        for concern in defer_commit_list:
+            print("\t{}".format(concern))
+
+        if dry_run:
+            print("In dry run mode, dropped.")
+            return 0
+
+        while True:
+            user_input = input("Proceed? y/n: ")
             if user_input == "n":
-                continue
-        print("Now unfollowing", concern)
-        if not dry_run:
-            for key in ConcernExtraFields:
-                del concern[key]
-            res = sess.post(url, data=concern)
+                print("Operation is cancelled by user, dropped.")
+                return 0
+            elif user_input == "y":
+                break
+            else:
+                print("{} is not a valid answer.".format(user_input))
+
+        for concern in defer_commit_list:
+            print("Now unfollowing", concern)
+            res = sess.post(url, data=concern[0])
             print(res.text)
+
+    else:
+        for concern in concernList:
+            if need_confirm:
+                user_input = input("Unfollow {}? [y]/n: ".format(concern))
+                if user_input == "n":
+                    continue
+            print("Now unfollowing", concern)
+            if not dry_run:
+                res = sess.post(url, data=concern[0])
+                print(res.text)
 
 
 def deleteFans(sess, fansList):
     url = "https://tieba.baidu.com/i/commit"
     dry_run = GetConfig("DryRun")
     need_confirm = GetConfig("NeedConfirm")
+    defer_commit = GetConfig("DeferCommit")
 
-    for fans in fansList:
-        if need_confirm:
-            user_input = input("Block {}? [y]/n: ".format(fans))
+    if defer_commit:
+        defer_commit_list = list()
+        for fans in fansList:
+            if need_confirm:
+                user_input = input("Block {}? [y]/n: ".format(fans))
+                if user_input == "n":
+                    continue
+            print("Adding {} to deferred blocking.".format(fans))
+            defer_commit_list.append(fans)
+
+        print("Fans will be blocked:")
+        for fans in defer_commit_list:
+            print("\t{}".format(fans))
+
+        if dry_run:
+            print("In dry run mode, dropped.")
+            return 0
+
+        while True:
+            user_input = input("Proceed? y/n: ")
             if user_input == "n":
-                continue
-        print("Now blocking fans", fans)
-        if not dry_run:
-            for key in FanExtraFields:
-                del fans[key]
-            res = sess.post(url, data=fans)
+                print("Operation is cancelled by user, dropped.")
+                return 0
+            elif user_input == "y":
+                break
+            else:
+                print("{} is not a valid answer.".format(user_input))
+
+        for fans in defer_commit_list:
+            print("Now blocking fans", fans)
+            res = sess.post(url, data=fans[0])
             print(res.text)
+    else:
+        for fans in fansList:
+            if need_confirm:
+                user_input = input("Block {}? [y]/n: ".format(fans))
+                if user_input == "n":
+                    continue
+            print("Now blocking fans", fans)
+            if not dry_run:
+                res = sess.post(url, data=fans[0])
+                print(res.text)
 
 
 def check(obj):
@@ -327,4 +466,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        print("Exit by user request.")

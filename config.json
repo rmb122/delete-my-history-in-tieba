@@ -1,7 +1,8 @@
 {
     "config": {
         "DryRun": true,
-        "NeedConfirm": false
+        "NeedConfirm": false,
+        "DeferCommit": true
     },
     "thread": {
         "enable": true,
@@ -10,7 +11,7 @@
         "keep": []
     },
     "reply": {
-        "enable": true,
+        "enable": false,
         "start": 1,
         "end": 5,
         "keep": []
