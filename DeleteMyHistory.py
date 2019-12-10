@@ -15,14 +15,17 @@ DefaultConfig = {
     "DeferCommit": True
 }
 
+
 def GetConfig(key):
     result = GlobalConfig.get(key, DefaultConfig[key])
     if result is None:
         raise RuntimeError("Invalid key {}.".format(key))
     return result
 
+
 def loadCookie(sess):
-    cookies = open("/".join([sys.path[0], "cookie.json"])).read().replace("\n", "")
+    cookies = open("/".join([sys.path[0], "cookie.json"])
+                   ).read().replace("\n", "")
     cookies = json.loads(cookies)
     sess.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36"
     for cookie in cookies:
@@ -40,6 +43,7 @@ def getTbs(sess):
             pass
     tbs = res.json()["tbs"]
     return tbs
+
 
 def getThreadList(sess, startPageNumber, endPageNumber):
     threadList = list()
@@ -63,9 +67,11 @@ def getThreadList(sess, startPageNumber, endPageNumber):
             threadDict["tid"] = tidExp.findall(thread)[0]
             threadDict["pid"] = pidExp.findall(thread)[0]
             threadExtraDict = dict()
-            threadExtraDict["title"] = element.contents[0] if len(element.contents) > 0 else ""
+            threadExtraDict["title"] = element.contents[0] if len(
+                element.contents) > 0 else ""
             threadList.append((threadDict, threadExtraDict))
     return threadList
+
 
 def getReplyList(sess, startPageNumber, endPageNumber):
     replyList = list()
@@ -83,7 +89,8 @@ def getReplyList(sess, startPageNumber, endPageNumber):
             return
 
         html = bs4.BeautifulSoup(res.text, "lxml")
-        elements = html.find_all(name="a", attrs={"class": "for_reply_context"})
+        elements = html.find_all(
+            name="a", attrs={"class": "for_reply_context"})
         for element in elements:
             reply = element.get("href")
             if reply.find("pid") != -1:
@@ -92,7 +99,8 @@ def getReplyList(sess, startPageNumber, endPageNumber):
                 cid = cidExp.findall(reply)
                 replyDict = dict()
                 replyExtraDict = dict()
-                replyExtraDict["content"] = element.contents[0] if len(element.contents) > 0 else ""
+                replyExtraDict["content"] = element.contents[0] if len(
+                    element.contents) > 0 else ""
                 replyDict["tid"] = tid[0]
 
                 if cid and cid[0] != "0":  # 如果 cid != 0, 这个回复是楼中楼, 否则是一整楼的回复
@@ -101,6 +109,7 @@ def getReplyList(sess, startPageNumber, endPageNumber):
                     replyDict["pid"] = pid[0]
                 replyList.append((replyDict, replyExtraDict))
     return replyList
+
 
 def getFollowedBaList(sess, startPageNumber, endPageNumber):
     baList = list()
@@ -114,7 +123,8 @@ def getFollowedBaList(sess, startPageNumber, endPageNumber):
             return
 
         html = bs4.BeautifulSoup(res.text, "lxml")
-        forum_table = html.find(name="div", attrs={"class": "forum_table"}).contents[0].contents
+        forum_table = html.find(
+            name="div", attrs={"class": "forum_table"}).contents[0].contents
         for element in forum_table:
             if element.contents[0].name != "td":
                 continue
@@ -127,6 +137,7 @@ def getFollowedBaList(sess, startPageNumber, endPageNumber):
             baDict["fname"] = unfollow_button.get("balvname")
             baList.append((baDict, baExtraDict))
     return baList
+
 
 def getConcerns(sess, startPageNumber, endPageNumber):
     concernList = list()
@@ -152,10 +163,11 @@ def getConcerns(sess, startPageNumber, endPageNumber):
             concernList.append((concernDict, concernExtraDict))
     return concernList
 
+
 def getFans(sess, startPageNumber, endPageNumber):
     fansList = list()
     tbsExp = re.compile(r"tbs : '([0-9a-zA-Z]{16})'")  # 居然还有一个短版 tbs.... 绝了
-    
+
     for number in range(startPageNumber, endPageNumber + 1):
         print("Now in fans page", number)
         url = "http://tieba.baidu.com/i/i/fans?pn=" + str(number)
@@ -177,6 +189,84 @@ def getFans(sess, startPageNumber, endPageNumber):
             fanExtraDict["name"] = element.get("name")
             fansList.append((fanDict, fanExtraDict))
     return fansList
+
+
+def matchFeatures(obj, features):
+    for k, v in features.items():
+        pattern = re.compile(v)
+        if k in obj and pattern.match(obj[k]) is None:
+            return False
+    return True
+
+
+# 建议使用keep功能时先使用DryRun或者DeferCommit模式查看将会被删除的元素
+def buildKeepFunction(matchKey):
+    def resultFunction(elementList, keepPattern=None):
+        if keepPattern is None:
+            # 不提供keep之时直接返回
+            return elementList
+        elif type(keepPattern) is list:
+            # "keep": ["(pid等根据实际情况选择的key)"]
+            # 此时将会匹配整个key，保留完全匹配key的元素
+            # keep中的key应全为字符串，否则无法匹配
+
+            # fast path
+            if len(keepPattern) == 0:
+                return elementList
+            return [element for element in elementList if {**element[0], **element[1]}[matchKey] not in keepPattern]
+        elif type(keepPattern) is dict:
+            # "keep": { "(pid等根据实际情况选择的key)": "(正则表达式)" }
+            # 此时将会匹配符合特征的元素，保留匹配的元素，特征中没有的key及原元素没有的key将会被忽略
+
+            # fast path
+            if len(keepPattern) == 0:
+                return elementList
+            return [element for element in elementList if not matchFeatures({**element[0], **element[1]}, keepPattern)]
+        elif type(keepPattern) is str:
+            # "keep": "(合法的python表达式，类型是函数)"
+            # 此时将会将pattern作为python表达式解析，将结果作为函数调用，将元素作为参数传入，返回True时保留此元素
+            # 使用此功能时请不要使用其他人提供的config.json
+
+            # 此确认可能导致删除行为被挂起
+            user_confirm = input("Use user-defined keep matcher '{}', continue?\n"
+                                 "Please reject if you are not sure it's safe to run in current environment. y/n: "
+                                 .format(keepPattern))
+            if user_confirm != "y":
+                print("No filtering is performed due to user operation, returning.")
+                return elementList
+
+            keepMatcher = eval(keepPattern)
+
+            def matcher(element):
+                try:
+                    return keepMatcher(element)
+                except Exception as e:
+                    print("Error occured while evaluating user-defined keep matcher '{}' for element {}, "
+                          "ignored and assumed not matched.".format(keepPattern, element))
+                    print("Error is '{}'".format(e))
+                    return False
+
+            return [element for element in elementList if not matcher({**element[0], **element[1]})]
+        else:
+            # 其他不支持的情况
+            raise RuntimeError(
+                "Unsupported keep pattern: '{}'.".format(keepPattern))
+    return resultFunction
+
+# 在keep为列表时，分别对以下情况选择以下的key进行匹配
+
+
+# 使用pid作为帖子及回复的key进行匹配
+keepThread = buildKeepFunction("pid")
+
+# 使用fid作为关注的吧的key进行匹配
+keepBa = buildKeepFunction("fid")
+
+# 使用id作为要取关的人的key进行匹配
+keepConcerns = buildKeepFunction("id")
+
+# 使用portrait作为要拉黑的粉丝的key进行匹配
+keepFans = buildKeepFunction("portrait")
 
 
 def deleteThread(sess, threadList):
@@ -222,8 +312,8 @@ def deleteThread(sess, threadList):
             res = sess.post(url, data=postData)
 
             print(res.text)
-    
-            if res.json()["err_code"] == 220034:  #达到上限
+
+            if res.json()["err_code"] == 220034:  # 达到上限
                 print("Limit exceeded, exiting.")
                 return count
             else:
@@ -240,10 +330,10 @@ def deleteThread(sess, threadList):
                 postData["tbs"] = getTbs(sess)
                 postData.update(threadDict[0])
                 res = sess.post(url, data=postData)
-    
+
                 print(res.text)
-        
-                if res.json()["err_code"] == 220034:  #达到上限
+
+                if res.json()["err_code"] == 220034:  # 达到上限
                     print("Limit exceeded, exiting.")
                     return count
                 else:
@@ -410,7 +500,8 @@ def check(obj):
 def main():
     global GlobalConfig
 
-    config = open("/".join([sys.path[0], "config.json"])).read().replace("\n", "")
+    config = open("/".join([sys.path[0], "config.json"])
+                  ).read().replace("\n", "")
     config = json.loads(config)
     GlobalConfig = config["config"] or DefaultConfig
     sess = requests.session()
@@ -422,47 +513,71 @@ def main():
         print("Not in dry run mode, your operation will be committed and may be not recoverable.")
 
     if config["thread"]["enable"]:
-        threadList = getThreadList(sess, config["thread"]["start"], config["thread"]["end"])
+        threadList = getThreadList(
+            sess, config["thread"]["start"], config["thread"]["end"])
         check(threadList)
         print("Collected", len(threadList), "threads", end="\n\n")
-        count = deleteThread(sess, threadList)
+        filteredThreadList = keepThread(
+            threadList, config["thread"].get("keep", None))
+        print(len(threadList) - len(filteredThreadList),
+              "threads filtered.", end="\n\n")
+        count = deleteThread(sess, filteredThreadList)
         print(count, "threads has been deleted", end="")
-        if len(threadList) != count:
-            print(", left", len(threadList) - count, "threads due to limit exceeded or in dry run mode, or cancelled by user operation.", end="\n\n")
+        if len(filteredThreadList) != count:
+            print(", left", len(filteredThreadList) - count,
+                  "threads due to limit exceeded or in dry run mode, or cancelled by user operation.", end="\n\n")
         else:
             print(".", end="\n\n")
-        
+
     if config["reply"]["enable"]:
-        replyList = getReplyList(sess, config["reply"]["start"], config["reply"]["end"])
+        replyList = getReplyList(
+            sess, config["reply"]["start"], config["reply"]["end"])
         check(replyList)
         print("Collected", len(replyList), "replys", end="\n\n")
-        count = deleteThread(sess, replyList)
+        filteredReplyList = keepThread(
+            replyList, config["reply"].get("keep", None))
+        print(len(replyList) - len(filteredReplyList),
+              "replies filtered.", end="\n\n")
+        count = deleteThread(sess, filteredReplyList)
         print(count, "replys has been deleted", end="")
-        if len(replyList) != count:
-            print(", left", len(replyList) - count, "replys due to limit exceeded or in dry run mode, or cancelled by user operation.", end="\n\n")
+        if len(filteredReplyList) != count:
+            print(", left", len(filteredReplyList) - count,
+                  "replys due to limit exceeded or in dry run mode, or cancelled by user operation.", end="\n\n")
         else:
             print(".", end="\n\n")
 
     if config["followedBa"]["enable"]:
-        baList = getFollowedBaList(sess, config["followedBa"]["start"], config["followedBa"]["end"])
+        baList = getFollowedBaList(
+            sess, config["followedBa"]["start"], config["followedBa"]["end"])
         check(baList)
         print("Collected", len(baList), "followed Ba", end="\n\n")
-        deleteFollowedBa(sess, baList)
-        print(len(baList), "followed Ba has been deleted.", end="\n\n")
+        filteredBaList = keepBa(baList, config["followedBa"].get("keep", None))
+        print(len(baList) - len(filteredBaList), "bas filtered.", end="\n\n")
+        deleteFollowedBa(sess, filteredBaList)
+        print(len(filteredBaList), "followed Ba has been deleted.", end="\n\n")
 
     if config["concern"]["enable"]:
-        concernList = getConcerns(sess, config["concern"]["start"], config["concern"]["end"])
+        concernList = getConcerns(
+            sess, config["concern"]["start"], config["concern"]["end"])
         check(concernList)
         print("Collected", len(concernList), "concerns", end="\n\n")
-        deleteConcern(sess, concernList)
-        print(len(concernList), "concerns has been deleted.", end="\n\n")
+        filteredConcernList = keepConcerns(
+            concernList, config["concern"].get("keep", None))
+        print(len(concernList) - len(filteredConcernList),
+              "bas filtered.", end="\n\n")
+        deleteConcern(sess, filteredConcernList)
+        print(len(filteredConcernList), "concerns has been deleted.", end="\n\n")
 
     if config["fans"]["enable"]:
-        fansList = getFans(sess, config["fans"]["start"], config["fans"]["end"])
+        fansList = getFans(sess, config["fans"]
+                           ["start"], config["fans"]["end"])
         check(fansList)
         print("Collected", len(fansList), "fans", end="\n\n")
-        deleteFans(sess, fansList)
-        print(len(fansList), "fans has been deleted.", end="\n\n")
+        filteredFansList = keepFans(fansList, config["fans"].get("keep", None))
+        print(len(fansList) - len(filteredFansList),
+              "bas filtered.", end="\n\n")
+        deleteFans(sess, filteredFansList)
+        print(len(filteredFansList), "fans has been deleted.", end="\n\n")
 
 
 if __name__ == "__main__":
