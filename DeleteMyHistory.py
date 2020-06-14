@@ -19,6 +19,8 @@ def load_cookie(sess):
 
 def get_tbs(sess):
     success = False
+    res = None
+
     while not success:
         try:
             res = sess.get("http://tieba.baidu.com/dc/common/tbs", timeout=5)
@@ -26,14 +28,15 @@ def get_tbs(sess):
         except Exception:
             traceback.print_exc()
             pass
+
     tbs = res.json()["tbs"]
     return tbs
 
 
 def get_thread_list(sess, start_page_number, end_page_number):
     thread_list = list()
-    tid_exp = re.compile(r"/([0-9]{1,})")
-    pid_exp = re.compile(r"pid=([0-9]{1,})")
+    tid_exp = re.compile(r"/([0-9]+)")
+    pid_exp = re.compile(r"pid=([0-9]+)")
 
     for number in range(start_page_number, end_page_number + 1):
         print("Now in thread page", number)
@@ -57,9 +60,9 @@ def get_thread_list(sess, start_page_number, end_page_number):
 
 def get_reply_list(sess, start_page_number, end_page_number):
     reply_list = list()
-    tid_exp = re.compile(r"/([0-9]{1,})")
-    pid_exp = re.compile(r"pid=([0-9]{1,})")  # 主题贴和回复都为 pid
-    cid_exp = re.compile(r"cid=([0-9]{1,})")  # 楼中楼为 cid
+    tid_exp = re.compile(r"/([0-9]+)")
+    pid_exp = re.compile(r"pid=([0-9]+)")  # 主题贴和回复都为 pid
+    cid_exp = re.compile(r"cid=([0-9]+)")  # 楼中楼为 cid
 
     for number in range(start_page_number, end_page_number + 1):
         print("Now in reply page", number)
@@ -112,7 +115,7 @@ def get_followed_ba_list(sess, start_page_number, end_page_number):
 
 
 def get_concerns(sess, start_page_number, end_page_number):
-    concernList = list()
+    concern_list = list()
     for number in range(start_page_number, end_page_number + 1):
         print("Now in concern page", number)
         url = "http://tieba.baidu.com/i/i/concern?pn=" + str(number)
@@ -129,11 +132,11 @@ def get_concerns(sess, start_page_number, end_page_number):
             concern_dict["cmd"] = "unfollow"
             concern_dict["tbs"] = element.get("tbs")
             concern_dict["id"] = element.get("portrait")
-            concernList.append(concern_dict)
-    return concernList
+            concern_list.append(concern_dict)
+    return concern_list
 
 
-def getFans(sess, start_page_number, end_page_number):
+def get_fans(sess, start_page_number, end_page_number):
     fans_list = list()
     tbs_exp = re.compile(r"tbs : '([0-9a-zA-Z]{16})'")  # 居然还有一个短版 tbs.... 绝了
 
@@ -256,7 +259,7 @@ def main():
         print(len(concern_list), "concerns has been deleted.", end="\n\n")
 
     if config["fans"]["enable"]:
-        fans_list = getFans(sess, config["fans"]["start"], config["fans"]["end"])
+        fans_list = get_fans(sess, config["fans"]["start"], config["fans"]["end"])
         check(fans_list)
         print("Collected", len(fans_list), "fans", end="\n\n")
         delete_fans(sess, fans_list)
