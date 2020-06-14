@@ -9,15 +9,15 @@ import bs4
 import requests
 
 
-def loadCookie(sess):
+def load_cookie(sess):
     cookies = open("/".join([sys.path[0], "cookie.json"])).read().replace("\n", "")
     cookies = json.loads(cookies)
-    sess.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.77 Safari/537.36"
+    sess.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36"
     for cookie in cookies:
         sess.cookies[cookie["name"]] = cookie["value"]
 
 
-def getTbs(sess):
+def get_tbs(sess):
     success = False
     while not success:
         try:
@@ -30,12 +30,12 @@ def getTbs(sess):
     return tbs
 
 
-def getThreadList(sess, startPageNumber, endPageNumber):
-    threadList = list()
-    tidExp = re.compile(r"/([0-9]{1,})")
-    pidExp = re.compile(r"pid=([0-9]{1,})")
+def get_thread_list(sess, start_page_number, end_page_number):
+    thread_list = list()
+    tid_exp = re.compile(r"/([0-9]{1,})")
+    pid_exp = re.compile(r"pid=([0-9]{1,})")
 
-    for number in range(startPageNumber, endPageNumber + 1):
+    for number in range(start_page_number, end_page_number + 1):
         print("Now in thread page", number)
         url = "http://tieba.baidu.com/i/i/my_tie?pn=" + str(number)
         res = sess.get(url)
@@ -48,20 +48,20 @@ def getThreadList(sess, startPageNumber, endPageNumber):
         elements = html.find_all(name="a", attrs={"class": "thread_title"})
         for element in elements:
             thread = element.get("href")
-            threadDict = dict()
-            threadDict["tid"] = tidExp.findall(thread)[0]
-            threadDict["pid"] = pidExp.findall(thread)[0]
-            threadList.append(threadDict)
-    return threadList
+            thread_dict = dict()
+            thread_dict["tid"] = tid_exp.findall(thread)[0]
+            thread_dict["pid"] = pid_exp.findall(thread)[0]
+            thread_list.append(thread_dict)
+    return thread_list
 
 
-def getReplyList(sess, startPageNumber, endPageNumber):
-    replyList = list()
-    tidExp = re.compile(r"/([0-9]{1,})")
-    pidExp = re.compile(r"pid=([0-9]{1,})")  # 主题贴和回复都为 pid
-    cidExp = re.compile(r"cid=([0-9]{1,})")  # 楼中楼为 cid
+def get_reply_list(sess, start_page_number, end_page_number):
+    reply_list = list()
+    tid_exp = re.compile(r"/([0-9]{1,})")
+    pid_exp = re.compile(r"pid=([0-9]{1,})")  # 主题贴和回复都为 pid
+    cid_exp = re.compile(r"cid=([0-9]{1,})")  # 楼中楼为 cid
 
-    for number in range(startPageNumber, endPageNumber + 1):
+    for number in range(start_page_number, end_page_number + 1):
         print("Now in reply page", number)
         url = "http://tieba.baidu.com/i/i/my_reply?pn=" + str(number)
         res = sess.get(url)
@@ -75,45 +75,45 @@ def getReplyList(sess, startPageNumber, endPageNumber):
         for element in elements:
             reply = element.get("href")
             if reply.find("pid") != -1:
-                tid = tidExp.findall(reply)
-                pid = pidExp.findall(reply)
-                cid = cidExp.findall(reply)
-                replyDict = dict()
-                replyDict["tid"] = tid[0]
+                tid = tid_exp.findall(reply)
+                pid = pid_exp.findall(reply)
+                cid = cid_exp.findall(reply)
+                reply_dict = dict()
+                reply_dict["tid"] = tid[0]
 
                 if cid and cid[0] != "0":  # 如果 cid != 0, 这个回复是楼中楼, 否则是一整楼的回复
-                    replyDict["pid"] = cid[0]
+                    reply_dict["pid"] = cid[0]
                 else:
-                    replyDict["pid"] = pid[0]
-                replyList.append(replyDict)
-    return replyList
+                    reply_dict["pid"] = pid[0]
+                reply_list.append(reply_dict)
+    return reply_list
 
 
-def getFollowedBaList(sess, startPageNumber, endPageNumber):
-    baList = list()
-    for number in range(startPageNumber, endPageNumber + 1):
+def get_followed_ba_list(sess, start_page_number, end_page_number):
+    ba_list = list()
+    for number in range(start_page_number, end_page_number + 1):
         print("Now in followed Ba page", number)
         url = "http://tieba.baidu.com/f/like/mylike?pn=" + str(number)
         res = sess.get(url)
 
         if res.url == "http://static.tieba.baidu.com/tb/error.html?ErrType=1":
-            print("Cookie has been expried, Please update it")
+            print("Cookie has been expired, Please update it")
             return
 
         html = bs4.BeautifulSoup(res.text, "lxml")
         elements = html.find_all(name="span")
         for element in elements:
-            baDict = dict()
-            baDict["fid"] = element.get("balvid")
-            baDict["tbs"] = element.get("tbs")
-            baDict["fname"] = element.get("balvname")
-            baList.append(baDict)
-    return baList
+            ba_dict = dict()
+            ba_dict["fid"] = element.get("balvid")
+            ba_dict["tbs"] = element.get("tbs")
+            ba_dict["fname"] = element.get("balvname")
+            ba_list.append(ba_dict)
+    return ba_list
 
 
-def getConcerns(sess, startPageNumber, endPageNumber):
+def get_concerns(sess, start_page_number, end_page_number):
     concernList = list()
-    for number in range(startPageNumber, endPageNumber + 1):
+    for number in range(start_page_number, end_page_number + 1):
         print("Now in concern page", number)
         url = "http://tieba.baidu.com/i/i/concern?pn=" + str(number)
         res = sess.get(url)
@@ -125,54 +125,54 @@ def getConcerns(sess, startPageNumber, endPageNumber):
         html = bs4.BeautifulSoup(res.text, "lxml")
         elements = html.find_all(name="input", attrs={"class": "btn_unfollow"})
         for element in elements:
-            concernDict = dict()
-            concernDict["cmd"] = "unfollow"
-            concernDict["tbs"] = element.get("tbs")
-            concernDict["id"] = element.get("portrait")
-            concernList.append(concernDict)
+            concern_dict = dict()
+            concern_dict["cmd"] = "unfollow"
+            concern_dict["tbs"] = element.get("tbs")
+            concern_dict["id"] = element.get("portrait")
+            concernList.append(concern_dict)
     return concernList
 
 
-def getFans(sess, startPageNumber, endPageNumber):
-    fansList = list()
-    tbsExp = re.compile(r"tbs : '([0-9a-zA-Z]{16})'")  # 居然还有一个短版 tbs.... 绝了
-    
-    for number in range(startPageNumber, endPageNumber + 1):
+def getFans(sess, start_page_number, end_page_number):
+    fans_list = list()
+    tbs_exp = re.compile(r"tbs : '([0-9a-zA-Z]{16})'")  # 居然还有一个短版 tbs.... 绝了
+
+    for number in range(start_page_number, end_page_number + 1):
         print("Now in fans page", number)
         url = "http://tieba.baidu.com/i/i/fans?pn=" + str(number)
         res = sess.get(url)
 
         if res.url == "http://static.tieba.baidu.com/tb/error.html?ErrType=1":
-            print("Cookie has been expried, Please update it")
+            print("Cookie has been expired, Please update it")
             return
 
-        tbs = tbsExp.findall(res.text)[0]
+        tbs = tbs_exp.findall(res.text)[0]
         html = bs4.BeautifulSoup(res.text, "lxml")
         elements = html.find_all(name="input", attrs={"class": "btn_follow"})
         for element in elements:
-            fanDict = dict()
-            fanDict["cmd"] = "add_black_list"
-            fanDict["tbs"] = tbs
-            fanDict["portrait"] = element.get("portrait")
-            fansList.append(fanDict)
-    return fansList
+            fan_dict = dict()
+            fan_dict["cmd"] = "add_black_list"
+            fan_dict["tbs"] = tbs
+            fan_dict["portrait"] = element.get("portrait")
+            fans_list.append(fan_dict)
+    return fans_list
 
 
-def deleteThread(sess, threadList):
+def delete_thread(sess, thread_list):
     url = "https://tieba.baidu.com/f/commit/post/delete"
     count = 0
 
-    for threadDict in threadList:
-        print("Now deleting", threadDict)
-        postData = dict()
-        postData["tbs"] = getTbs(sess)
-        for idName in threadDict:
-            postData[idName] = threadDict[idName]
-        res = sess.post(url, data=postData)
+    for thread_dict in thread_list:
+        print("Now deleting", thread_dict)
+        post_data = dict()
+        post_data["tbs"] = get_tbs(sess)
+        for idName in thread_dict:
+            post_data[idName] = thread_dict[idName]
+        res = sess.post(url, data=post_data)
 
         print(res.text)
 
-        if res.json()["err_code"] == 220034:  #达到上限
+        if res.json()["err_code"] == 220034:  # 达到上限
             print("Limit exceeded, exiting.")
             return count
         else:
@@ -181,28 +181,28 @@ def deleteThread(sess, threadList):
     return count
 
 
-def deleteFollowedBa(sess, baList):
+def delete_followed_ba(sess, ba_list):
     url = "https://tieba.baidu.com/f/like/commit/delete"
 
-    for ba in baList:
+    for ba in ba_list:
         print("Now unfollowing", ba)
         res = sess.post(url, data=ba)
         print(res.text)
 
 
-def deleteConcern(sess, concernList):
+def delete_concern(sess, concern_list):
     url = "https://tieba.baidu.com/home/post/unfollow"
 
-    for concern in concernList:
+    for concern in concern_list:
         print("Now unfollowing", concern)
         res = sess.post(url, data=concern)
         print(res.text)
 
 
-def deleteFans(sess, fansList):
+def delete_fans(sess, fans_list):
     url = "https://tieba.baidu.com/i/commit"
 
-    for fans in fansList:
+    for fans in fans_list:
         print("Now blocking fans", fans)
         res = sess.post(url, data=fans)
         print(res.text)
@@ -217,50 +217,50 @@ def main():
     config = open("/".join([sys.path[0], "config.json"])).read().replace("\n", "")
     config = json.loads(config)
     sess = requests.session()
-    loadCookie(sess)
+    load_cookie(sess)
 
     if config["thread"]["enable"]:
-        threadList = getThreadList(sess, config["thread"]["start"], config["thread"]["end"])
-        check(threadList)
-        print("Collected", len(threadList), "threads", end="\n\n")
-        count = deleteThread(sess, threadList)
+        thread_list = get_thread_list(sess, config["thread"]["start"], config["thread"]["end"])
+        check(thread_list)
+        print("Collected", len(thread_list), "threads", end="\n\n")
+        count = delete_thread(sess, thread_list)
         print(count, "threads has been deleted", end="")
-        if len(threadList) != count:
-            print(", left", len(threadList) - count, "threads due to limit exceeded.", end="\n\n")
-        else:
-            print(".", end="\n\n")
-        
-    if config["reply"]["enable"]:
-        replyList = getReplyList(sess, config["reply"]["start"], config["reply"]["end"])
-        check(replyList)
-        print("Collected", len(replyList), "replys", end="\n\n")
-        count = deleteThread(sess, replyList)
-        print(count, "replys has been deleted", end="")
-        if len(replyList) != count:
-            print(", left", len(replyList) - count, "replys due to limit exceeded.", end="\n\n")
+        if len(thread_list) != count:
+            print(", left", len(thread_list) - count, "threads due to limit exceeded.", end="\n\n")
         else:
             print(".", end="\n\n")
 
-    if config["followedBa"]["enable"]:
-        baList = getFollowedBaList(sess, config["followedBa"]["start"], config["followedBa"]["end"])
-        check(baList)
-        print("Collected", len(baList), "followed Ba", end="\n\n")
-        deleteFollowedBa(sess, baList)
-        print(len(baList), "followed Ba has been deleted.", end="\n\n")
+    if config["reply"]["enable"]:
+        reply_list = get_reply_list(sess, config["reply"]["start"], config["reply"]["end"])
+        check(reply_list)
+        print("Collected", len(reply_list), "replies", end="\n\n")
+        count = delete_thread(sess, reply_list)
+        print(count, "replies has been deleted", end="")
+        if len(reply_list) != count:
+            print(", left", len(reply_list) - count, "replies due to limit exceeded.", end="\n\n")
+        else:
+            print(".", end="\n\n")
+
+    if config["followed_ba"]["enable"]:
+        ba_list = get_followed_ba_list(sess, config["followed_ba"]["start"], config["followed_ba"]["end"])
+        check(ba_list)
+        print("Collected", len(ba_list), "followed Ba", end="\n\n")
+        delete_followed_ba(sess, ba_list)
+        print(len(ba_list), "followed Ba has been deleted.", end="\n\n")
 
     if config["concern"]["enable"]:
-        concernList = getConcerns(sess, config["concern"]["start"], config["concern"]["end"])
-        check(concernList)
-        print("Collected", len(concernList), "concerns", end="\n\n")
-        deleteConcern(sess, concernList)
-        print(len(concernList), "concerns has been deleted.", end="\n\n")
+        concern_list = get_concerns(sess, config["concern"]["start"], config["concern"]["end"])
+        check(concern_list)
+        print("Collected", len(concern_list), "concerns", end="\n\n")
+        delete_concern(sess, concern_list)
+        print(len(concern_list), "concerns has been deleted.", end="\n\n")
 
     if config["fans"]["enable"]:
-        fansList = getFans(sess, config["fans"]["start"], config["fans"]["end"])
-        check(fansList)
-        print("Collected", len(fansList), "fans", end="\n\n")
-        deleteFans(sess, fansList)
-        print(len(fansList), "fans has been deleted.", end="\n\n")
+        fans_list = getFans(sess, config["fans"]["start"], config["fans"]["end"])
+        check(fans_list)
+        print("Collected", len(fans_list), "fans", end="\n\n")
+        delete_fans(sess, fans_list)
+        print(len(fans_list), "fans has been deleted.", end="\n\n")
 
 
 if __name__ == "__main__":
