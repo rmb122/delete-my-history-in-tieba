@@ -20,9 +20,9 @@
   
 在窗口中分别输入以下指令后回车 (等待一条完成之后再输下一条)  
 ```sh
-pip install bs4
-pip install requests
-pip install lxml
+pip install bs4 -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install requests -i https://pypi.tuna.tsinghua.edu.cn/simple
+pip install lxml -i https://pypi.tuna.tsinghua.edu.cn/simple
 ```
 
 ![][8]  
