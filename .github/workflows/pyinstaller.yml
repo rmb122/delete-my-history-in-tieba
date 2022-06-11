@@ -1,0 +1,24 @@
+name: Package exe with PyInstaller - Windows
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: PyInstaller Windows
+      uses: JackMcKew/pyinstaller-action-windows@main
+      with:
+        path: .
+        spec: build.spec
+
+    - uses: actions/upload-artifact@v2
+      with:
+        name: DeleteMyHistory.exe
+        path: dist/DeleteMyHistory.exe
