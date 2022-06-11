@@ -21,4 +21,7 @@ jobs:
     - uses: actions/upload-artifact@v2
       with:
         name: DeleteMyHistory.exe
-        path: dist/DeleteMyHistory.exe
+        path: |
+          dist/windows/DeleteMyHistory.exe
+          config.toml
+          cookie.txt
