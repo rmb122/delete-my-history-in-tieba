@@ -1,80 +1,168 @@
-# -*- coding: utf-8 -*-
-
-import json
+import abc
+import copy
+import logging
 import re
 import sys
 import traceback
+import typing
 
 import bs4
 import requests
+import toml
+
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(levelname)s] %(message)s')
+logger = logging.getLogger(__name__)
 
 
-def load_cookie(sess):
-    cookies = open("/".join([sys.path[0], "cookie.json"])).read().replace("\n", "")
-    cookies = json.loads(cookies)
-    sess.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36"
-    for cookie in cookies:
-        sess.cookies[cookie["name"]] = cookie["value"]
+def load_cookie(session: requests.Session, raw_cookie: str) -> requests.Session:
+    session.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36"
+    for cookie in raw_cookie.split(';'):
+        cookie = cookie.strip()
+
+        if '=' in cookie:
+            name, value = cookie.split('=', 1)
+            session.cookies[name] = value
+    return session
 
 
-def get_tbs(sess):
-    success = False
-    res = None
-
-    while not success:
-        try:
-            res = sess.get("http://tieba.baidu.com/dc/common/tbs", timeout=5)
-            success = True
-        except Exception:
-            traceback.print_exc()
-            pass
-
-    tbs = res.json()["tbs"]
-    return tbs
+def validate_cookie(session: requests.Session):
+    resp = session.get('https://tieba.baidu.com/i/i/my_tie', allow_redirects=False)
+    return resp.status_code == 200
 
 
-def get_thread_list(sess, start_page_number, end_page_number):
-    thread_list = list()
-    tid_exp = re.compile(r"/([0-9]+)")
-    pid_exp = re.compile(r"pid=([0-9]+)")
+class HashableDict(dict):
+    def __hash__(self):
+        return hash(tuple(sorted(self.items())))
 
-    for number in range(start_page_number, end_page_number + 1):
-        print("Now in thread page", number)
-        url = "http://tieba.baidu.com/i/i/my_tie?pn=" + str(number)
-        res = sess.get(url)
 
-        if res.url == "http://static.tieba.baidu.com/tb/error.html?ErrType=1":
-            print("Cookie has been expried, Please update it")
-            return
+class Module:
+    _name: str
+    _session: requests.Session
 
-        html = bs4.BeautifulSoup(res.text, "lxml")
+    def __init__(self, session: requests.Session):
+        self._session = session
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def session(self):
+        return self._session
+
+    def _get_tbs(self):
+        success = False
+        resp = None
+
+        while not success:
+            try:
+                resp = self._session.get("https://tieba.baidu.com/dc/common/tbs", timeout=5)
+                success = True
+            except Exception:
+                traceback.print_exc()
+                pass
+
+        tbs = resp.json()["tbs"]
+        return tbs
+
+    def run(self):
+        def remove_tbs(temp_entity: typing.Dict[str, str]) -> typing.Dict[str, str]:
+            # tbs 是随机生成的, 需要去掉之后再去重
+            temp_entity = copy.deepcopy(temp_entity)
+            if 'tbs' in temp_entity:
+                del temp_entity['tbs']
+            return temp_entity
+
+        current_page = 1
+        deleted_entity = set()
+
+        logger.info(f'current in module [{self._name}]')
+        while True:
+            current_page_entity = self._collect(current_page)
+
+            if len(current_page_entity) == 0:
+                # 全部删除干净了
+                logger.info(f'all entity in module [{self._name}] are all deleted')
+                return
+
+            if len(set([HashableDict(remove_tbs(i)) for i in current_page_entity]).difference(deleted_entity)) == 0:
+                # 当前页面全部都是已经删除过的, 跳到下一页, (百度的神奇 BUG, 只有帖子/回复会出现这种情况)
+                current_page += 1
+                logger.info(f'no more new entity in page [{current_page - 1}], switch to page [{current_page}]')
+                continue
+
+            for entity in current_page_entity:
+                no_tbs_entity = HashableDict(remove_tbs(entity))
+
+                if no_tbs_entity not in deleted_entity:
+                    deleted_entity.add(no_tbs_entity)
+
+                    logger.info(f"now deleting [{entity}], in page [{current_page}]")
+                    resp, stop = self._delete(entity)
+                    logger.info(f'delete response [{resp.text}]')
+
+                    if stop:
+                        logger.info(f"limit exceeded in [{self._name}], exiting")
+                        return
+
+    @abc.abstractmethod
+    def _collect(self, page: int) -> typing.List[typing.Dict[str, str]]:
+        raise NotImplementedError("")
+
+    @abc.abstractmethod
+    def _delete(self, entity: typing.Any) -> [requests.Response, bool]:
+        raise NotImplementedError("")
+
+
+class ThreadModule(Module):
+    def __init__(self, session: requests.Session):
+        super().__init__(session)
+        self._name = 'thread'
+
+    def _collect(self, page: int) -> typing.List[typing.Dict[str, str]]:
+        tid_exp = re.compile(r"/([0-9]+)")
+        pid_exp = re.compile(r"pid=([0-9]+)")
+
+        resp = self._session.get("https://tieba.baidu.com/i/i/my_tie", params={'pn': page})
+
+        html = bs4.BeautifulSoup(resp.text, "lxml")
         elements = html.find_all(name="a", attrs={"class": "thread_title"})
+
+        current_page_thread = []
         for element in elements:
             thread = element.get("href")
             thread_dict = dict()
             thread_dict["tid"] = tid_exp.findall(thread)[0]
             thread_dict["pid"] = pid_exp.findall(thread)[0]
-            thread_list.append(thread_dict)
-    return thread_list
+            current_page_thread.append(thread_dict)
+        return current_page_thread
+
+    def _delete(self, entity: typing.Dict[str, str]) -> [requests.Response, bool]:
+        url = "https://tieba.baidu.com/f/commit/post/delete"
+
+        post_data = copy.deepcopy(entity)
+        post_data["tbs"] = self._get_tbs()
+        resp = self._session.post(url, data=post_data)
+
+        return resp, resp.json()["err_code"] == 220034
 
 
-def get_reply_list(sess, start_page_number, end_page_number):
-    reply_list = list()
-    tid_exp = re.compile(r"/([0-9]+)")
-    pid_exp = re.compile(r"pid=([0-9]+)")  # 主题贴和回复都为 pid
-    cid_exp = re.compile(r"cid=([0-9]+)")  # 楼中楼为 cid
+class ReplyModule(Module):
+    def __init__(self, session: requests.Session):
+        super().__init__(session)
+        self._name = 'reply'
 
-    for number in range(start_page_number, end_page_number + 1):
-        print("Now in reply page", number)
-        url = "http://tieba.baidu.com/i/i/my_reply?pn=" + str(number)
-        res = sess.get(url)
+    def _collect(self, page: int) -> typing.List[typing.Dict[str, str]]:
+        tid_exp = re.compile(r"/([0-9]+)")
+        pid_exp = re.compile(r"pid=([0-9]+)")  # 主题贴和回复都为 pid
+        cid_exp = re.compile(r"cid=([0-9]+)")  # 楼中楼为 cid
 
-        if res.url == "http://static.tieba.baidu.com/tb/error.html?ErrType=1":
-            print("Cookie has been expried, Please update it")
-            return
+        resp = self._session.get("https://tieba.baidu.com/i/i/my_reply", params={'pn': page})
 
-        html = bs4.BeautifulSoup(res.text, "lxml")
+        html = bs4.BeautifulSoup(resp.text, "lxml")
         elements = html.find_all(name="a", attrs={"class": "b_reply"})
+        current_page_reply = []
+
         for element in elements:
             reply = element.get("href")
             if reply.find("pid") != -1:
@@ -88,22 +176,28 @@ def get_reply_list(sess, start_page_number, end_page_number):
                     reply_dict["pid"] = cid[0]
                 else:
                     reply_dict["pid"] = pid[0]
-                reply_list.append(reply_dict)
-    return reply_list
+                current_page_reply.append(reply_dict)
+        return current_page_reply
+
+    def _delete(self, entity: typing.Dict[str, str]) -> [requests.Response, bool]:
+        url = "https://tieba.baidu.com/f/commit/post/delete"
+
+        post_data = copy.deepcopy(entity)
+        post_data["tbs"] = self._get_tbs()
+        resp = self._session.post(url, data=post_data)
+        return resp, resp.json()["err_code"] == 220034
 
 
-def get_followed_ba_list(sess, start_page_number, end_page_number):
-    ba_list = list()
-    for number in range(start_page_number, end_page_number + 1):
-        print("Now in followed Ba page", number)
-        url = "http://tieba.baidu.com/f/like/mylike?pn=" + str(number)
-        res = sess.get(url)
+class FollowedBaModule(Module):
+    def __init__(self, session: requests.Session):
+        super().__init__(session)
+        self._name = 'followed_ba'
 
-        if res.url == "http://static.tieba.baidu.com/tb/error.html?ErrType=1":
-            print("Cookie has been expired, Please update it")
-            return
+    def _collect(self, page: int) -> typing.List[typing.Dict[str, str]]:
+        ba_list = []
+        resp = self._session.get("https://tieba.baidu.com/f/like/mylike", params={'pn': page})
 
-        html = bs4.BeautifulSoup(res.text, "lxml")
+        html = bs4.BeautifulSoup(resp.text, "lxml")
         elements = html.find_all(name="span")
         for element in elements:
             ba_dict = dict()
@@ -111,21 +205,25 @@ def get_followed_ba_list(sess, start_page_number, end_page_number):
             ba_dict["tbs"] = element.get("tbs")
             ba_dict["fname"] = element.get("balvname")
             ba_list.append(ba_dict)
-    return ba_list
+        return ba_list
+
+    def _delete(self, entity: typing.Dict[str, str]) -> [requests.Response, bool]:
+        url = "https://tieba.baidu.com/f/like/commit/delete"
+        resp = self._session.post(url, data=entity)
+        return resp, False
 
 
-def get_concerns(sess, start_page_number, end_page_number):
-    concern_list = list()
-    for number in range(start_page_number, end_page_number + 1):
-        print("Now in concern page", number)
-        url = "http://tieba.baidu.com/i/i/concern?pn=" + str(number)
-        res = sess.get(url)
+class ConcernModule(Module):
+    def __init__(self, session: requests.Session):
+        super().__init__(session)
+        self._name = 'concern'
 
-        if res.url == "http://static.tieba.baidu.com/tb/error.html?ErrType=1":
-            print("Cookie has been expried, Please update it")
-            return
+    def _collect(self, page: int) -> typing.List[typing.Dict[str, str]]:
+        concern_list = []
 
-        html = bs4.BeautifulSoup(res.text, "lxml")
+        resp = self._session.get("https://tieba.baidu.com/i/i/concern", params={'pn': page})
+
+        html = bs4.BeautifulSoup(resp.text, "lxml")
         elements = html.find_all(name="input", attrs={"class": "btn_unfollow"})
         for element in elements:
             concern_dict = dict()
@@ -133,137 +231,67 @@ def get_concerns(sess, start_page_number, end_page_number):
             concern_dict["tbs"] = element.get("tbs")
             concern_dict["id"] = element.get("portrait")
             concern_list.append(concern_dict)
-    return concern_list
+        return concern_list
+
+    def _delete(self, entity: typing.Dict[str, str]) -> [requests.Response, bool]:
+        url = "https://tieba.baidu.com/home/post/unfollow"
+        resp = self._session.post(url, data=entity)
+        return resp, False
 
 
-def get_fans(sess, start_page_number, end_page_number):
-    fans_list = list()
-    tbs_exp = re.compile(r"tbs : '([0-9a-zA-Z]{16})'")  # 居然还有一个短版 tbs.... 绝了
+class FanModule(Module):
+    def __init__(self, session: requests.Session):
+        super().__init__(session)
+        self._name = 'fan'
 
-    for number in range(start_page_number, end_page_number + 1):
-        print("Now in fans page", number)
-        url = "http://tieba.baidu.com/i/i/fans?pn=" + str(number)
-        res = sess.get(url)
+    def _collect(self, page: int) -> typing.List[typing.Dict[str, str]]:
+        fan_list = []
+        tbs_exp = re.compile(r"tbs : '([0-9a-zA-Z]{16})'")  # 居然还有一个短版 tbs.... 绝了
 
-        if res.url == "http://static.tieba.baidu.com/tb/error.html?ErrType=1":
-            print("Cookie has been expired, Please update it")
-            return
+        resp = self._session.get("https://tieba.baidu.com/i/i/fans", params={'pn': page})
 
-        tbs = tbs_exp.findall(res.text)[0]
-        html = bs4.BeautifulSoup(res.text, "lxml")
+        tbs = tbs_exp.findall(resp.text)[0]
+        html = bs4.BeautifulSoup(resp.text, "lxml")
         elements = html.find_all(name="input", attrs={"class": "btn_follow"})
         for element in elements:
             fan_dict = dict()
             fan_dict["cmd"] = "add_black_list"
             fan_dict["tbs"] = tbs
             fan_dict["portrait"] = element.get("portrait")
-            fans_list.append(fan_dict)
-    return fans_list
+            fan_list.append(fan_dict)
+        return fan_list
 
-
-def delete_thread(sess, thread_list):
-    url = "https://tieba.baidu.com/f/commit/post/delete"
-    count = 0
-
-    for thread_dict in thread_list:
-        print("Now deleting", thread_dict)
-        post_data = dict()
-        post_data["tbs"] = get_tbs(sess)
-        for idName in thread_dict:
-            post_data[idName] = thread_dict[idName]
-        res = sess.post(url, data=post_data)
-
-        print(res.text)
-
-        if res.json()["err_code"] == 220034:  # 达到上限
-            print("Limit exceeded, exiting.")
-            return count
-        else:
-            count += 1
-
-    return count
-
-
-def delete_followed_ba(sess, ba_list):
-    url = "https://tieba.baidu.com/f/like/commit/delete"
-
-    for ba in ba_list:
-        print("Now unfollowing", ba)
-        res = sess.post(url, data=ba)
-        print(res.text)
-
-
-def delete_concern(sess, concern_list):
-    url = "https://tieba.baidu.com/home/post/unfollow"
-
-    for concern in concern_list:
-        print("Now unfollowing", concern)
-        res = sess.post(url, data=concern)
-        print(res.text)
-
-
-def delete_fans(sess, fans_list):
-    url = "https://tieba.baidu.com/i/commit"
-
-    for fans in fans_list:
-        print("Now blocking fans", fans)
-        res = sess.post(url, data=fans)
-        print(res.text)
-
-
-def check(obj):
-    if obj is None:
-        exit(0)
+    def _delete(self, entity: typing.Dict[str, str]) -> [requests.Response, bool]:
+        url = "https://tieba.baidu.com/i/commit"
+        resp = self._session.post(url, data=entity)
+        return resp, False
 
 
 def main():
-    config = open("/".join([sys.path[0], "config.json"])).read().replace("\n", "")
-    config = json.loads(config)
-    sess = requests.session()
-    load_cookie(sess)
+    with open('config.toml', 'r') as f:
+        config = toml.load(f)
 
-    if config["thread"]["enable"]:
-        thread_list = get_thread_list(sess, config["thread"]["start"], config["thread"]["end"])
-        check(thread_list)
-        print("Collected", len(thread_list), "threads", end="\n\n")
-        count = delete_thread(sess, thread_list)
-        print(count, "threads has been deleted", end="")
-        if len(thread_list) != count:
-            print(", left", len(thread_list) - count, "threads due to limit exceeded.", end="\n\n")
-        else:
-            print(".", end="\n\n")
+    with open('cookie.txt', 'r') as f:
+        raw_cookie = f.read()
 
-    if config["reply"]["enable"]:
-        reply_list = get_reply_list(sess, config["reply"]["start"], config["reply"]["end"])
-        check(reply_list)
-        print("Collected", len(reply_list), "replies", end="\n\n")
-        count = delete_thread(sess, reply_list)
-        print(count, "replies has been deleted", end="")
-        if len(reply_list) != count:
-            print(", left", len(reply_list) - count, "replies due to limit exceeded.", end="\n\n")
-        else:
-            print(".", end="\n\n")
+    session = requests.session()
+    session = load_cookie(session, raw_cookie)
 
-    if config["followed_ba"]["enable"]:
-        ba_list = get_followed_ba_list(sess, config["followed_ba"]["start"], config["followed_ba"]["end"])
-        check(ba_list)
-        print("Collected", len(ba_list), "followed Ba", end="\n\n")
-        delete_followed_ba(sess, ba_list)
-        print(len(ba_list), "followed Ba has been deleted.", end="\n\n")
+    if not validate_cookie(session):
+        logger.fatal('cookie expired, please update it')
+        sys.exit(-1)
 
-    if config["concern"]["enable"]:
-        concern_list = get_concerns(sess, config["concern"]["start"], config["concern"]["end"])
-        check(concern_list)
-        print("Collected", len(concern_list), "concerns", end="\n\n")
-        delete_concern(sess, concern_list)
-        print(len(concern_list), "concerns has been deleted.", end="\n\n")
+    module_constructors: typing.List[typing.Callable[[requests.Session], Module]] = [
+        ThreadModule, ReplyModule, FollowedBaModule, ConcernModule, FanModule
+    ]
 
-    if config["fans"]["enable"]:
-        fans_list = get_fans(sess, config["fans"]["start"], config["fans"]["end"])
-        check(fans_list)
-        print("Collected", len(fans_list), "fans", end="\n\n")
-        delete_fans(sess, fans_list)
-        print(len(fans_list), "fans has been deleted.", end="\n\n")
+    for module_constructor in module_constructors:
+        module = module_constructor(session)
+
+        if module.name in config:
+            module_config = config[module.name]
+            if module_config['enable']:
+                module.run()
 
 
 if __name__ == "__main__":

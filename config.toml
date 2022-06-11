@@ -1,0 +1,14 @@
+[thread]
+enable = true
+
+[reply]
+enable = true
+
+[followed_ba]
+enable = false
+
+[concern]
+enable = false
+
+[fan]
+enable = false
