@@ -18,10 +18,12 @@ jobs:
         path: .
         spec: build.spec
 
+    - run: mv dist/windows/DeleteMyHistory.exe DeleteMyHistory.exe
+
     - uses: actions/upload-artifact@v2
       with:
-        name: DeleteMyHistory.exe
+        name: DeleteMyHistory
         path: |
-          dist/windows/DeleteMyHistory.exe
+          DeleteMyHistory.exe
           config.toml
           cookie.txt
