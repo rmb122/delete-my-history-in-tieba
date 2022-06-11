@@ -7,16 +7,14 @@ pip install -r requirements.txt
 ```
 
 运行环境为 `Python >= 3`  
-`DeleteMyHistory.py` 删除你的回复、主题帖、关注、粉丝、关注的吧  
+使用前需要在 `cookie.txt` 中添加自己的 Cookie  
+直接复制 Chrome 开发者工具下网络页面中对 `tieba.baidu.com` 请求的 Cookie 进去即可  
+之后运行 `DeleteMyHistory.py` 删除你的回复、主题帖、关注、粉丝、关注的吧  
+更多选项可以在 `config.toml` 中更改设置, 下面详细介绍  
+
 如果你是个小白的话, 请参阅[傻瓜教程][1]  
 
 PS: 不要在意项目名中的 `hisroy`, 手滑不小心打错了 (逃
-
-## DeleteMyHistory.py
-
-使用前需要在 `cookie.txt` 中添加自己的 Cookie  
-直接复制 Chrome 开发者工具下网络页面中对 `tieba.baidu.com` 请求的 Cookie 进去即可  
-可以在 `config.toml` 中更改设置, 下面详细介绍  
 
 ## config.toml
 
@@ -33,7 +31,7 @@ PS: 不要在意项目名中的 `hisroy`, 手滑不小心打错了 (逃
 enable = true
 ```
 改为  
-```json
+```toml
 [thread]
 enable = false
 ```
