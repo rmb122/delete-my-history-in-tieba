@@ -1,52 +1,19 @@
 # 傻瓜教程
 
-首先下载安装 [python][1]  
-(3.6.5 是版本号, 不一样没关系)  
-![][2]  
+1. 首先下载[安装包][1], 解压到桌面
+![](https://s2.loli.net/2022/06/11/rDXR9SOigWLYotd.png)
+2. 用 Chrome 打开 https://tieba.baidu.com/index.html, 在页面空白处右键, 点击检查, 打开开发者工具
+![2022-06-11_20-10.png](https://s2.loli.net/2022/06/11/Blew1ks2hd84FIu.png)
+3. 选中网络选项卡
+![2022-06-11_20-10_1.png](https://s2.loli.net/2022/06/11/zK38beVXlgjvnDH.png)
+4. 确保保留日志是**没有**勾选的状态, 然后刷新页面, 将选项卡拉到最上面, 点击 `index.html`. 
+在请求标头的 `Cookie` 的值上右键, 点击复制值
+![2022-06-11_20-15.png](https://s2.loli.net/2022/06/11/XGmK7BLeY6jfcZF.png)
+5. 把结果复制到刚刚下载的 cookie.txt 里面 (注意不要把复制结果泄漏到互联网上)
+![2022-06-11_20-16.png](https://s2.loli.net/2022/06/11/WaGfiVcnIU7ZgRX.png)
+6. 在文件夹空白处 `Shift+右键`, 点击此处打开 Powershell 窗口
+![2022-06-11_20-16_1.png](https://s2.loli.net/2022/06/11/I5e4QfZqSpVG6al.png)
+7. 输入 `.\DeleteMyHistory.exe` 即开始运行
+![2022-06-11_20-17.png](https://s2.loli.net/2022/06/11/Yz46ucXUxLFV8Wk.png)
 
-注意安装时选择 `Add Python 3.6 to PATH`  (一定要勾选, 否则接下来无法运行)  
-![][3]  
-
-最后安装 [EditThisCookie][4]、下载 git 上的代码  
-![][5]  
-
-如果是 `Windows 10` 按照图示打开 `PowerShell`, 注意需要 `管理员` 权限  
-
-![][6]  
-
-如果是 Win7 的话, 如图搜索 `cmd` 右键以 `管理员` 权限打开  
-
-![][7]  
-  
-在窗口中分别输入以下指令后回车 (等待一条完成之后再输下一条)  
-```sh
-pip install bs4 -i https://pypi.tuna.tsinghua.edu.cn/simple
-pip install requests -i https://pypi.tuna.tsinghua.edu.cn/simple
-pip install lxml -i https://pypi.tuna.tsinghua.edu.cn/simple
-```
-
-![][8]  
-
-安装完成之后登录进贴吧, 在[百度首页][9]上如图所示导出自己的 cookie  
-![][10]  
-
-将压缩包内文件解压到一个文件夹  
-打开 `cookie.json`, 将原来的内容全部删除后 `ctrl` +  `v`, 将自己的 cookie 复制上去保存  
-这个时候双击 `DeleteMyHistory.py`, 应该就可以运行了~  
-
-默认情况下只删除主题帖和回复帖, 如果需要删除关注等, 请参考 `README.md` 里面的内容, 将对应的键值  
-从 `false` 替换为 `true`.  
-
-PS: 觉得好用的话点个 `Star` 吧 \_(:з」∠)\_  
-PSS: 还有疑问或者遇到 `bug` 的话可以在 `issues` 里提出, 有空的话我会尽量解决的  
-
-[1]: https://www.python.org/
-[2]: https://i.loli.net/2019/04/27/5cc33976370ef.png
-[3]: https://i.loli.net/2019/04/27/5cc3397638db7.png
-[4]: https://chrome.google.com/webstore/detail/editthiscookie/fngmhnnpilhplaeedifhccceomclgfbg
-[5]: https://i.loli.net/2019/04/27/5cc339761586c.png
-[6]: https://i.loli.net/2019/04/27/5cc3397635602.png
-[7]: https://i.loli.net/2019/04/27/5cc339761a427.png
-[8]: https://i.loli.net/2019/04/27/5cc33975c0774.png
-[9]: https://www.baidu.com
-[10]: https://i.loli.net/2019/04/27/5cc3397613b89.png
+[1]: https://github.com/rmb122/Delete-my-hisroy-in-tieba/suites/6890631552/artifacts/267076890
