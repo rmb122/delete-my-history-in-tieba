@@ -16,4 +16,4 @@
 7. 输入 `.\DeleteMyHistory.exe` 即开始运行  
 ![2022-06-11_20-17.png](https://s2.loli.net/2022/06/11/Yz46ucXUxLFV8Wk.png)
 
-[1]: https://github.com/rmb122/Delete-my-hisroy-in-tieba/suites/6890631552/artifacts/267076890
+[1]: https://github.com/rmb122/Delete-my-hisroy-in-tieba/releases/download/v1.0.0/delete-my-history-in-tieba-v1.0.0.zip
