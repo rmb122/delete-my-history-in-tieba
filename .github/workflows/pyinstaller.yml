@@ -2,9 +2,8 @@ name: Package exe with PyInstaller - Windows
 
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    tags:
+      - "v*"
 
 jobs:
   build:
@@ -27,3 +26,11 @@ jobs:
           DeleteMyHistory.exe
           config.toml
           cookie.txt
+
+    - run: "${{ format('zip -r delete-my-history-in-tieba-{0}.zip DeleteMyHistory.exe config.toml cookie.txt', github.ref_name) }}"
+
+    - uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        prerelease: false
+        files: delete-my-history-in-tieba-*.zip
