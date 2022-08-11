@@ -110,7 +110,7 @@ class Module:
         raise NotImplementedError("")
 
     @abc.abstractmethod
-    def _delete(self, entity: typing.Any) -> [requests.Response, bool]:
+    def _delete(self, entity: typing.Any) -> typing.Tuple[requests.Response, bool]:
         raise NotImplementedError("")
 
 
@@ -137,7 +137,7 @@ class ThreadModule(Module):
             current_page_thread.append(thread_dict)
         return current_page_thread
 
-    def _delete(self, entity: typing.Dict[str, str]) -> [requests.Response, bool]:
+    def _delete(self, entity: typing.Dict[str, str]) -> typing.Tuple[requests.Response, bool]:
         url = "https://tieba.baidu.com/f/commit/post/delete"
 
         post_data = copy.deepcopy(entity)
@@ -179,7 +179,7 @@ class ReplyModule(Module):
                 current_page_reply.append(reply_dict)
         return current_page_reply
 
-    def _delete(self, entity: typing.Dict[str, str]) -> [requests.Response, bool]:
+    def _delete(self, entity: typing.Dict[str, str]) -> typing.Tuple[requests.Response, bool]:
         url = "https://tieba.baidu.com/f/commit/post/delete"
 
         post_data = copy.deepcopy(entity)
@@ -207,7 +207,7 @@ class FollowedBaModule(Module):
             ba_list.append(ba_dict)
         return ba_list
 
-    def _delete(self, entity: typing.Dict[str, str]) -> [requests.Response, bool]:
+    def _delete(self, entity: typing.Dict[str, str]) -> typing.Tuple[requests.Response, bool]:
         url = "https://tieba.baidu.com/f/like/commit/delete"
         resp = self._session.post(url, data=entity)
         return resp, False
@@ -233,7 +233,7 @@ class ConcernModule(Module):
             concern_list.append(concern_dict)
         return concern_list
 
-    def _delete(self, entity: typing.Dict[str, str]) -> [requests.Response, bool]:
+    def _delete(self, entity: typing.Dict[str, str]) -> typing.Tuple[requests.Response, bool]:
         url = "https://tieba.baidu.com/home/post/unfollow"
         resp = self._session.post(url, data=entity)
         return resp, False
@@ -261,7 +261,7 @@ class FanModule(Module):
             fan_list.append(fan_dict)
         return fan_list
 
-    def _delete(self, entity: typing.Dict[str, str]) -> [requests.Response, bool]:
+    def _delete(self, entity: typing.Dict[str, str]) -> typing.Tuple[requests.Response, bool]:
         url = "https://tieba.baidu.com/i/commit"
         resp = self._session.post(url, data=entity)
         return resp, False
