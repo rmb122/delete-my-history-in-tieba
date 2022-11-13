@@ -1,14 +1,22 @@
+user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36'
+cookie_file = './cookie.txt'
+
 [thread]
 enable = true
+start_page = 1
 
 [reply]
 enable = true
+start_page = 1
 
 [followed_ba]
 enable = false
+start_page = 1
 
 [concern]
 enable = false
+start_page = 1
 
 [fan]
 enable = false
+start_page = 1

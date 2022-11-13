@@ -14,33 +14,35 @@ logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(levelname)s] %(
 logger = logging.getLogger(__name__)
 
 
-def load_cookie(session: requests.Session, raw_cookie: str) -> requests.Session:
-    session.headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.0.0 Safari/537.36"
-    for cookie in raw_cookie.split(';'):
-        cookie = cookie.strip()
-
-        if '=' in cookie:
-            name, value = cookie.split('=', 1)
-            session.cookies[name] = value
-    return session
-
-
-def validate_cookie(session: requests.Session):
-    resp = session.get('https://tieba.baidu.com/i/i/my_tie', allow_redirects=False)
-    return resp.status_code == 200
-
-
 class HashableDict(dict):
     def __hash__(self):
         return hash(tuple(sorted(self.items())))
 
 
+class ModuleConfig(typing.TypedDict):
+    enable: bool
+    start_page: int
+
+
+class GlobalConfig(typing.TypedDict):
+    user_agent: str
+    cookie_file: str
+
+    thread: ModuleConfig
+    reply: ModuleConfig
+    followed_ba: ModuleConfig
+    concern: ModuleConfig
+    fan: ModuleConfig
+
+
 class Module:
     _name: str
     _session: requests.Session
+    _config: GlobalConfig
 
-    def __init__(self, session: requests.Session):
+    def __init__(self, session: requests.Session, config: GlobalConfig):
         self._session = session
+        self._config = config
 
     @property
     def name(self):
@@ -60,12 +62,16 @@ class Module:
                 success = True
             except Exception:
                 traceback.print_exc()
-                pass
 
         tbs = resp.json()["tbs"]
         return tbs
 
     def run(self):
+        # 没有配置启动, 直接返回
+        module_config: typing.Optional[ModuleConfig] = self._config.get(self.name, None)
+        if module_config is None or module_config.get('enable', False) is not True:
+            return
+
         def remove_tbs(temp_entity: typing.Dict[str, str]) -> typing.Dict[str, str]:
             # tbs 是随机生成的, 需要去掉之后再去重
             temp_entity = copy.deepcopy(temp_entity)
@@ -73,7 +79,7 @@ class Module:
                 del temp_entity['tbs']
             return temp_entity
 
-        current_page = 1
+        current_page = module_config.get('start_page', 1)
         deleted_entity = set()
 
         logger.info(f'current in module [{self._name}]')
@@ -115,8 +121,8 @@ class Module:
 
 
 class ThreadModule(Module):
-    def __init__(self, session: requests.Session):
-        super().__init__(session)
+    def __init__(self, session: requests.Session, config: GlobalConfig):
+        super().__init__(session, config)
         self._name = 'thread'
 
     def _collect(self, page: int) -> typing.List[typing.Dict[str, str]]:
@@ -148,8 +154,8 @@ class ThreadModule(Module):
 
 
 class ReplyModule(Module):
-    def __init__(self, session: requests.Session):
-        super().__init__(session)
+    def __init__(self, session: requests.Session, config: GlobalConfig):
+        super().__init__(session, config)
         self._name = 'reply'
 
     def _collect(self, page: int) -> typing.List[typing.Dict[str, str]]:
@@ -189,8 +195,8 @@ class ReplyModule(Module):
 
 
 class FollowedBaModule(Module):
-    def __init__(self, session: requests.Session):
-        super().__init__(session)
+    def __init__(self, session: requests.Session, config: GlobalConfig):
+        super().__init__(session, config)
         self._name = 'followed_ba'
 
     def _collect(self, page: int) -> typing.List[typing.Dict[str, str]]:
@@ -214,8 +220,8 @@ class FollowedBaModule(Module):
 
 
 class ConcernModule(Module):
-    def __init__(self, session: requests.Session):
-        super().__init__(session)
+    def __init__(self, session: requests.Session, config: GlobalConfig):
+        super().__init__(session, config)
         self._name = 'concern'
 
     def _collect(self, page: int) -> typing.List[typing.Dict[str, str]]:
@@ -240,8 +246,8 @@ class ConcernModule(Module):
 
 
 class FanModule(Module):
-    def __init__(self, session: requests.Session):
-        super().__init__(session)
+    def __init__(self, session: requests.Session, config: GlobalConfig):
+        super().__init__(session, config)
         self._name = 'fan'
 
     def _collect(self, page: int) -> typing.List[typing.Dict[str, str]]:
@@ -267,31 +273,47 @@ class FanModule(Module):
         return resp, False
 
 
+def load_cookie(session: requests.Session, raw_cookie: str) -> requests.Session:
+    for cookie in raw_cookie.split(';'):
+        cookie = cookie.strip()
+
+        if '=' in cookie:
+            name, value = cookie.split('=', 1)
+            session.cookies[name] = value
+    return session
+
+
+def validate_cookie(session: requests.Session):
+    resp = session.get('https://tieba.baidu.com/i/i/my_tie', allow_redirects=False)
+    return resp.status_code == 200
+
+
 def main():
     with open('config.toml', 'r') as f:
-        config = toml.load(f)
+        config: GlobalConfig = toml.load(f)
 
-    with open('cookie.txt', 'r') as f:
+    cookie_file = config.get('cookie_file', './cookie.txt')
+    with open(cookie_file, 'r') as f:
         raw_cookie = f.read()
 
     session = requests.session()
     session = load_cookie(session, raw_cookie)
 
+    user_agent = config.get('user_agent', None)
+    if user_agent:
+        session.headers["User-Agent"] = user_agent
+
     if not validate_cookie(session):
         logger.fatal('cookie expired, please update it')
         sys.exit(-1)
 
-    module_constructors: typing.List[typing.Callable[[requests.Session], Module]] = [
+    module_constructors: typing.List[typing.Callable[[requests.Session, GlobalConfig], Module]] = [
         ThreadModule, ReplyModule, FollowedBaModule, ConcernModule, FanModule
     ]
 
     for module_constructor in module_constructors:
-        module = module_constructor(session)
-
-        if module.name in config:
-            module_config = config[module.name]
-            if module_config['enable']:
-                module.run()
+        module = module_constructor(session, config)
+        module.run()
 
 
 if __name__ == "__main__":

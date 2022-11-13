@@ -1,8 +1,6 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-
 block_cipher = None
-
 
 a = Analysis(
     ['DeleteMyHistory.py'],
