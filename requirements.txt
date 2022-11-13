@@ -4,3 +4,4 @@ bs4
 requests
 lxml
 toml
+typing_extensions

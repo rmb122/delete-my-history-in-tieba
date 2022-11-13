@@ -9,6 +9,7 @@ import typing
 import bs4
 import requests
 import toml
+import typing_extensions
 
 logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(levelname)s] %(message)s')
 logger = logging.getLogger(__name__)
@@ -19,12 +20,12 @@ class HashableDict(dict):
         return hash(tuple(sorted(self.items())))
 
 
-class ModuleConfig(typing.TypedDict):
+class ModuleConfig(typing_extensions.TypedDict):
     enable: bool
     start_page: int
 
 
-class GlobalConfig(typing.TypedDict):
+class GlobalConfig(typing_extensions.TypedDict):
     user_agent: str
     cookie_file: str
 
