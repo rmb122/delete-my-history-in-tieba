@@ -20,5 +20,5 @@
 2. 输入 `.\DeleteMyHistory.exe`, 将输出结果复制到 issue 处提交  
 ![2022-06-11_20-17.png](https://s2.loli.net/2022/06/11/Yz46ucXUxLFV8Wk.png)
 
-[1]: https://github.com/rmb122/delete-my-history-in-tieba/releases/download/v1.0.0/delete-my-history-in-tieba-v1.0.0.zip
+[1]: https://github.com/rmb122/delete-my-history-in-tieba/releases/download/v1.1.1/delete-my-history-in-tieba-v1.1.1.zip
 [2]: https://github.com/rmb122/delete-my-history-in-tieba#FAQ
