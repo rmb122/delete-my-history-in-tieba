@@ -12,7 +12,7 @@
 ![](https://s2.loli.net/2022/06/11/zK38beVXlgjvnDH.png)
 
 5. 确保保留日志是**没有**勾选的状态, 然后刷新页面, 将选项卡拉到最上面, 点击 `index.html`. 在右侧子页面向下滑动, 找到请求标头的 `Cookie`  
-![](https://s2.loli.net/2024/03/16/x84zdilB5hnWPXv.png)
+![](https://s2.loli.net/2024/03/16/YXPM8R5nGUkcvzH.png)
 
 6. 把 Cookie 右侧的值全部拖动选中, 右键点击复制
 ![](https://s2.loli.net/2024/03/16/8KEjq4OeWHdsITA.png)
@@ -20,7 +20,7 @@
 7. 把刚刚复制的 Cookie 粘贴到到刚刚下载的空白文件 cookie.txt 里面 (注意 Cookie 值可以等效你的账号密码，因此不要把复制结果泄漏到互联网上)  
 ![](https://s2.loli.net/2022/06/11/WaGfiVcnIU7ZgRX.png)
 
-8. 双击`DeleteMyHistory.exe` 即开始运行  
+8. 在默认设置下, 只会删除主题帖和回复, 如果要删除关注等其他历史痕迹, 可以参考[README][3]中的内容. 确认删除的范围后, 双击`DeleteMyHistory.exe` 即开始运行  
 ![](https://s2.loli.net/2022/08/11/PRi5WMqVkw9FvmY.png)
 
 如果出现问题, 例如闪退, 首先请参考 README 中的 [FAQ][2], 如果仍然存在错误, 可以按照如下操作提出 issue  
@@ -31,3 +31,4 @@
 
 [1]: https://github.com/rmb122/delete-my-history-in-tieba/releases/download/v1.1.1/delete-my-history-in-tieba-v1.1.1.zip
 [2]: https://github.com/rmb122/delete-my-history-in-tieba#FAQ
+[3]: https://github.com/rmb122/delete-my-history-in-tieba?tab=readme-ov-file#configtoml
