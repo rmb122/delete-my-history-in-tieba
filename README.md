@@ -64,9 +64,13 @@ A: 仍然为贴吧的 bug, 原因为部分页面为空, 导致程序误以为已
 Q: 帖子没有删除干净, 或者出现 `limit exceeded`.  
 A: 百度贴吧每天最多只允许删除 30 条帖子 (实际上存在各种 bug, 导致实际删除数量大于 30), 可以等明天继续运行.
 
+Q: 出现 `UnicodeDecodeError: 'gbk'...` 解码错误  
+A: 参考 [#37][3], 去掉 cookie.txt 中的乱码内容即可.
+
 ## 最后
 
 觉得好用的话可以点个 `Star` 鼓励作者, 如果还有疑问, 或者遇到 `bug` 的话可以在 `issues` 里提出
 
 [1]: https://github.com/rmb122/Delete-my-hisroy-in-tieba/blob/master/Guide.md
 [2]: https://github.com/rmb122/delete-my-history-in-tieba/issues/31
+[3]: https://github.com/rmb122/delete-my-history-in-tieba/issues/37
