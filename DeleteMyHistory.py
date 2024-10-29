@@ -294,8 +294,8 @@ def main():
         config: GlobalConfig = toml.load(f)
 
     cookie_file = config.get('cookie_file', './cookie.txt')
-    with open(cookie_file, 'r') as f:
-        raw_cookie = f.read()
+    with open(cookie_file, 'rb') as f:
+        raw_cookie = f.read().decode(errors='ignore')
 
     session = requests.session()
     session = load_cookie(session, raw_cookie)
