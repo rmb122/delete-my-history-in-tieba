@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: PyInstaller Windows
       uses: JackMcKew/pyinstaller-action-windows@main
       with:
@@ -19,7 +19,7 @@ jobs:
 
     - run: mv dist/windows/DeleteMyHistory.exe DeleteMyHistory.exe
 
-    - uses: actions/upload-artifact@v2
+    - uses: actions/upload-artifact@v4
       with:
         name: DeleteMyHistory
         path: |
